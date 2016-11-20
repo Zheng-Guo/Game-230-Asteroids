@@ -9,7 +9,7 @@ class Player {
 private:
 	Spaceship spaceship;
 public:
-	Player() :spaceship(Spaceship_Size, 90, 0.005,0.8,Spaceship_Angular_Speed) {
+	Player() :spaceship(Spaceship_Size, 90, Spaceship_Thrust,Spaceship_Full_Speed,Spaceship_Angular_Speed) {
 		spaceship.setSpaceshipTexture(Spaceship_Texture);
 	}
 	Spaceship getSpaceship() { return spaceship; }

@@ -17,6 +17,7 @@ private:
 public:
 	Asteroids() : window(VideoMode(Window_Width, Window_Height), "Asteroids", Style::Close | Style::Titlebar) {
 		window.setPosition(Vector2i(400, 0));
+		level.setDisplayWindow(FloatRect(0, 0, Window_Width, Window_Height));
 		srand(time(NULL));
 	}
 	void startGame();

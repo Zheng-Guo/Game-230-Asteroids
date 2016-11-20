@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML\Graphics.hpp>
+#include <vector>
 #include <cstdlib>
 #include <ctime>
 #include <memory>
@@ -12,12 +13,14 @@ using namespace std;
 
 class Level {
 private:
+	Background background;
 	Player player;
 	bool playerForward,playerBackward,playerLeft, playerRight;
 public:
 	Level(){
 		player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
 	}
+	void setDisplayWindow(FloatRect w) { background.setDisplayWindow(w); }
 	void processEvent(Event event);
 	void processAction();
 	void render(RenderWindow &window);
@@ -48,5 +51,8 @@ void Level::processAction() {
 }
 
 void Level::render(RenderWindow &window) {
+	vector<shared_ptr<BackgroundPanel>> visiblePanels = background.getVisiblePanels();
+	for (shared_ptr<BackgroundPanel> p : visiblePanels)
+		window.draw(*p);
 	window.draw(player.getSpaceship());
 }

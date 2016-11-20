@@ -13,13 +13,12 @@ private:
 	Texture flameTexture;
 	float direction;
 	float angularSpeed;
-	float thrust, speed,fullSpeed;
+	float thrust, fullSpeed;
 	Vector2f currentVelocity;
 public:
 	Spaceship(float size,float direction,float thrust,float fullSpeed,float angularSpeed):CircleShape(size),
 	direction(direction),
 	thrust(thrust),
-	speed(0),
 	fullSpeed(fullSpeed),
 	angularSpeed(angularSpeed){
 		setOrigin(size, size);
