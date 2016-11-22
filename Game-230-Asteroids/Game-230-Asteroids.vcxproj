@@ -156,6 +156,7 @@
     <ClInclude Include="Background.h" />
     <ClInclude Include="GameConstants.h" />
     <ClInclude Include="Level.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Spaceship.h" />
   </ItemGroup>

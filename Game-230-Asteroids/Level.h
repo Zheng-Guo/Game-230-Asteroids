@@ -41,8 +41,8 @@ void Level::processEvent(Event event) {
 void Level::processAction() {
 	if (playerForward)
 		player.moveForward();
-	if (playerBackward)
-		player.moveBackward();
+	//if (playerBackward)
+	//	player.moveBackward();
 	if (playerLeft)
 		player.turnLeft();
 	if (playerRight)
@@ -54,5 +54,9 @@ void Level::render(RenderWindow &window) {
 	vector<shared_ptr<BackgroundPanel>> visiblePanels = background.getVisiblePanels();
 	for (shared_ptr<BackgroundPanel> p : visiblePanels)
 		window.draw(*p);
+	//if (playerForward)
+	//	window.draw(player.getSpaceship().getEngineFlame());
 	window.draw(player.getSpaceship());
+	if (playerForward)
+		window.draw(player.getSpaceship().getEngineFlame());
 }
