@@ -15,7 +15,7 @@ public:
 		spaceship.setSpaceshipFlameSize(Spaceship_Flame_Width, Spaceship_Flame_Height);
 		spaceship.setSpaceshipFlamePosition(spaceship.getPosition().x,spaceship.getPosition().y);
 	}
-	Spaceship getSpaceship() { return spaceship; }
+	Spaceship& getSpaceship() { return spaceship; }
 	void setSpaceshipPosition(float x, float y) { spaceship.setPosition(x, y); }
 	void moveForward() { spaceship.moveForward(); }
 	//void moveBackward() { spaceship.moveBackward(); }

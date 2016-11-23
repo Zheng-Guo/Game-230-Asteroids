@@ -34,7 +34,6 @@ void Asteroids::startGame() {
 		}
 		time2 = clock.getElapsedTime();
 		time3 = time2 - time1;
-		cout << time3.asSeconds() << endl;
 		if (time3.asSeconds() >= Refresh_Interval) {
 			time1 = time2;
 			level.processAction();

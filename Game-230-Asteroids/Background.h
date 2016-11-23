@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include "GameConstants.h"
+#include "Player.h"
 
 using namespace sf;
 using namespace std;
@@ -29,10 +30,12 @@ private:
 	shared_ptr<BackgroundPanel> backgroundPanels[3][3];
 	shared_ptr<BackgroundPanel> currentBackgroundPanel;
 	FloatRect displayWindow;
+	FloatRect innerBound;
 	RectangleShape displayCenter;
 	Texture backgroundTexture;
 public:
-	Background():displayCenter(Vector2f(Display_Center_Width,Display_Center_Width)){
+	Background():displayCenter(Vector2f(Display_Center_Width,Display_Center_Width)),
+	innerBound(Background_Inner_Bound_Left,Background_Inner_Bound_Top,Background_Inner_Bound_Width,Background_Inner_Bound_Heigh){
 		backgroundTexture.loadFromFile(Background_Texture_File);
 		for (int i = 0; i < 3; i++)
 			for (int j = 0; j < 3; j++) {
@@ -44,7 +47,9 @@ public:
 	}
 	void setDisplayWindow(FloatRect w) { displayWindow = w; }
 	vector<shared_ptr<BackgroundPanel>> getVisiblePanels();
-	void shiftPanels(float x, float y);
+	bool isWithinInnerBound(Spaceship s) { return innerBound.contains(s.getPosition()); }
+	Vector2f getShift(Player &player);
+	void shiftPanels(Vector2f v);
 };
 
 
@@ -57,8 +62,29 @@ vector<shared_ptr<BackgroundPanel>> Background::getVisiblePanels() {
 	return v;
 }
 
-void Background::shiftPanels(float x, float y) {
+Vector2f Background::getShift(Player &player) {
+	float x=0, y=0;
+	if (player.getSpaceship().getPosition().x < innerBound.left) {
+		x = innerBound.left - player.getSpaceship().getPosition().x;
+		player.setSpaceshipPosition(innerBound.left, player.getSpaceship().getPosition().y);
+	}
+	if (player.getSpaceship().getPosition().x > innerBound.left + innerBound.width) {
+		x = innerBound.left + innerBound.width - player.getSpaceship().getPosition().x;
+		player.setSpaceshipPosition(innerBound.left + innerBound.width, player.getSpaceship().getPosition().y);
+	}
+	if (player.getSpaceship().getPosition().y < innerBound.top) {
+		y = innerBound.top - player.getSpaceship().getPosition().y;
+		player.setSpaceshipPosition(player.getSpaceship().getPosition().x,innerBound.top);
+	}
+	if (player.getSpaceship().getPosition().y > innerBound.top + innerBound.height) {
+		y = innerBound.top + innerBound.height - player.getSpaceship().getPosition().y;
+		player.setSpaceshipPosition(player.getSpaceship().getPosition().x, innerBound.top + innerBound.height);
+	}
+	return Vector2f(x, y);
+}
+
+void Background::shiftPanels(Vector2f v) {
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)
-			backgroundPanels[i][j]->move(x, y);
+			backgroundPanels[i][j]->move(v);
 }
