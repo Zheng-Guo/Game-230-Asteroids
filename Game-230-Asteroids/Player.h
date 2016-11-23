@@ -12,7 +12,7 @@ public:
 	Player() :spaceship(Spaceship_Size, 90, Spaceship_Thrust,Spaceship_Full_Speed,Spaceship_Angular_Speed) {
 		spaceship.setSpaceshipTexture(Spaceship_Texture);
 		spaceship.setSpaceshipFlameTexture(Spaceship_Engine_Flame_Texture);
-		spaceship.setSpaceshipFlameSize(20, 15);
+		spaceship.setSpaceshipFlameSize(Spaceship_Flame_Width, Spaceship_Flame_Height);
 		spaceship.setSpaceshipFlamePosition(spaceship.getPosition().x,spaceship.getPosition().y);
 	}
 	Spaceship getSpaceship() { return spaceship; }

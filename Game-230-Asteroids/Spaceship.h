@@ -60,7 +60,7 @@ void Spaceship::setSpaceshipTexture(const char textureFile[]) {
 
 void Spaceship::setSpaceshipFlameSize(float x, float y) {
 	flame.setSize(Vector2f(x, y));
-	flame.setOrigin(-getRadius(), y / 2);
+	flame.setOrigin(-getRadius()*0.9, y / 2);
 }
 
 void Spaceship::setSpaceshipFlamePosition(float x, float y) {
@@ -73,15 +73,12 @@ void Spaceship::setSpaceshipFlameTexture(const char textureFile[]) {
 }
 
 void Spaceship::moveForward() {
-	//cout <<"Original velocity: "<< velocity.x << " " << velocity.y << endl;
 	Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
 	Vector2f velocityInLocalCoordinates = rotationMatrix*velocity;
-	//cout <<"Velocity in local coordinate: "<< velocityInLocalCoordinates.x << " " << velocityInLocalCoordinates.y << endl;
 	float xSpeed = velocityInLocalCoordinates.x + thrust > fullSpeed ? velocityInLocalCoordinates.x + thrust : fullSpeed;
 	Vector2f newVelocityInLocalCoordinates(xSpeed, velocityInLocalCoordinates.y);
 	Matrix reverseRotationMatrix(cos(-direction*Degree_To_Radian), sin(-direction*Degree_To_Radian), -sin(-direction*Degree_To_Radian), cos(-direction*Degree_To_Radian));
 	velocity = reverseRotationMatrix*newVelocityInLocalCoordinates;
-	cout <<"New velocity: "<< velocity.x << " " << velocity.y << endl;
 }
 /*
 void Spaceship::moveBackward() {
@@ -103,18 +100,25 @@ void Spaceship::moveBackward() {
 
 void Spaceship::turnLeft() {
 	direction += angularSpeed;
+	if (direction > 180)
+		direction -=360;
+	else if (direction < -180)
+		direction += 360;
 	rotate(angularSpeed);
 	flame.rotate(angularSpeed);
 }
 
 void Spaceship::turnRight() {
 	direction -= angularSpeed;
+	if (direction > 180)
+		direction -= 360;
+	else if (direction < -180)
+		direction += 360;
 	rotate(-angularSpeed);
 	flame.rotate(-angularSpeed);
 }
 
 void Spaceship::move() {
-	cout << "Velocity: "<<velocity.x<<" "<<velocity.y<< endl;
 	CircleShape::move(velocity);
 	flame.move(velocity);
 }
