@@ -9,21 +9,10 @@ using namespace sf;
 using namespace std;
 
 class BackgroundPanel :public RectangleShape {
-private:
-	RectangleShape panelCenter;
 public:
-	BackgroundPanel(float x = 0, float y = 0, float px = 0, float py = 0) :RectangleShape(Vector2f(x, y)),
-		panelCenter(Vector2f(px, py)) {
-		panelCenter.setPosition(getPosition().x + x / 2 - px / 2, getPosition().y + y / 2 - py / 2);
+	BackgroundPanel(float x = 0, float y = 0, float px = 0, float py = 0) :RectangleShape(Vector2f(x, y)){
 	}
-	bool enterCenter(float x, float y) { return panelCenter.getGlobalBounds().contains(x, y); }
-	void setPosition(float x, float y);
 };
-
-void BackgroundPanel::setPosition(float x, float y) {
-	RectangleShape::setPosition(x, y);
-	panelCenter.setPosition(x+getSize().x/2 - panelCenter.getSize().x / 2, y+getSize().y/2 - panelCenter.getSize().y / 2);
-}
 
 class Background {
 private:
@@ -50,8 +39,8 @@ public:
 	bool isWithinInnerBound(Spaceship s) { return innerBound.contains(s.getPosition()); }
 	Vector2f getShift(Player &player);
 	void shiftPanels(Vector2f v);
+	void rotatePanels(Vector2f v);
 };
-
 
 vector<shared_ptr<BackgroundPanel>> Background::getVisiblePanels() {
 	vector<shared_ptr<BackgroundPanel>> v;
@@ -87,4 +76,90 @@ void Background::shiftPanels(Vector2f v) {
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)
 			backgroundPanels[i][j]->move(v);
+}
+
+void Background::rotatePanels(Vector2f v) {
+	int x=-1, y=-1;
+	for (int i=0; i < 3; i++) {
+		for (int j=0; j < 3; j++) {
+			if (backgroundPanels[i][j]->getGlobalBounds().contains(v)) {
+				x = i, y = j;
+			}
+		}
+	}
+	if (x != -1 && y != -1&&backgroundPanels[x][y]!=currentBackgroundPanel) {
+		if (x == 0) {
+			backgroundPanels[2][0]->setPosition(backgroundPanels[2][0]->getPosition().x, backgroundPanels[2][0]->getPosition().y-Background_Panel_Height*3);
+			backgroundPanels[2][1]->setPosition(backgroundPanels[2][1]->getPosition().x, backgroundPanels[2][1]->getPosition().y - Background_Panel_Height * 3);
+			backgroundPanels[2][2]->setPosition(backgroundPanels[2][2]->getPosition().x, backgroundPanels[2][2]->getPosition().y - Background_Panel_Height * 3);
+			shared_ptr<BackgroundPanel> temp;
+			temp = backgroundPanels[2][0];
+			backgroundPanels[2][0] = backgroundPanels[1][0];
+			backgroundPanels[1][0] = backgroundPanels[0][0];
+			backgroundPanels[0][0] = temp;
+			temp = backgroundPanels[2][1];
+			backgroundPanels[2][1] = backgroundPanels[1][1];
+			backgroundPanels[1][1] = backgroundPanels[0][1];
+			backgroundPanels[0][1] = temp;
+			temp = backgroundPanels[2][2];
+			backgroundPanels[2][2] = backgroundPanels[1][2];
+			backgroundPanels[1][2] = backgroundPanels[0][2];
+			backgroundPanels[0][2] = temp;
+		}
+		if (x == 2) {
+			backgroundPanels[0][0]->setPosition(backgroundPanels[0][0]->getPosition().x, backgroundPanels[0][0]->getPosition().y + Background_Panel_Height * 3);
+			backgroundPanels[0][1]->setPosition(backgroundPanels[0][1]->getPosition().x, backgroundPanels[0][1]->getPosition().y + Background_Panel_Height * 3);
+			backgroundPanels[0][2]->setPosition(backgroundPanels[0][2]->getPosition().x, backgroundPanels[0][2]->getPosition().y + Background_Panel_Height * 3);
+			shared_ptr<BackgroundPanel> temp;
+			temp = backgroundPanels[0][0];
+			backgroundPanels[0][0] = backgroundPanels[1][0];
+			backgroundPanels[1][0] = backgroundPanels[2][0];
+			backgroundPanels[2][0] = temp;
+			temp = backgroundPanels[0][1];
+			backgroundPanels[0][1] = backgroundPanels[1][1];
+			backgroundPanels[1][1] = backgroundPanels[2][1];
+			backgroundPanels[2][1] = temp;
+			temp = backgroundPanels[0][2];
+			backgroundPanels[0][2] = backgroundPanels[1][2];
+			backgroundPanels[1][2] = backgroundPanels[2][2];
+			backgroundPanels[2][2] = temp;
+		}
+		if (y == 0) {
+			backgroundPanels[0][2]->setPosition(backgroundPanels[0][2]->getPosition().x-Background_Panel_Width*3, backgroundPanels[0][2]->getPosition().y);
+			backgroundPanels[1][2]->setPosition(backgroundPanels[1][2]->getPosition().x - Background_Panel_Width * 3, backgroundPanels[1][2]->getPosition().y);
+			backgroundPanels[2][2]->setPosition(backgroundPanels[2][2]->getPosition().x - Background_Panel_Width * 3, backgroundPanels[2][2]->getPosition().y);
+			shared_ptr<BackgroundPanel> temp;
+			temp = backgroundPanels[0][2];
+			backgroundPanels[0][2] = backgroundPanels[0][1];
+			backgroundPanels[0][1] = backgroundPanels[0][0];
+			backgroundPanels[0][0] = temp;
+			temp = backgroundPanels[1][2];
+			backgroundPanels[1][2] = backgroundPanels[1][1];
+			backgroundPanels[1][1] = backgroundPanels[1][0];
+			backgroundPanels[1][0] = temp;
+			temp = backgroundPanels[2][2];
+			backgroundPanels[2][2] = backgroundPanels[2][1];
+			backgroundPanels[2][1] = backgroundPanels[2][0];
+			backgroundPanels[2][0] = temp;
+		}
+		if (y == 2) {
+			backgroundPanels[0][0]->setPosition(backgroundPanels[0][0]->getPosition().x + Background_Panel_Width * 3, backgroundPanels[0][0]->getPosition().y);
+			backgroundPanels[1][0]->setPosition(backgroundPanels[1][0]->getPosition().x + Background_Panel_Width * 3, backgroundPanels[1][0]->getPosition().y);
+			backgroundPanels[2][0]->setPosition(backgroundPanels[2][0]->getPosition().x + Background_Panel_Width * 3, backgroundPanels[2][0]->getPosition().y);
+			shared_ptr<BackgroundPanel> temp;
+			temp = backgroundPanels[0][0];
+			backgroundPanels[0][0] = backgroundPanels[0][1];
+			backgroundPanels[0][1] = backgroundPanels[0][2];
+			backgroundPanels[0][2] = temp;
+			temp = backgroundPanels[1][0];
+			backgroundPanels[1][0] = backgroundPanels[1][1];
+			backgroundPanels[1][1] = backgroundPanels[1][2];
+			backgroundPanels[1][2] = temp;
+			temp = backgroundPanels[2][0];
+			backgroundPanels[2][0] = backgroundPanels[2][1];
+			backgroundPanels[2][1] = backgroundPanels[2][2];
+			backgroundPanels[2][2] = temp;
+		}
+		currentBackgroundPanel = backgroundPanels[x][y];
+	}
 }

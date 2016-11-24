@@ -51,6 +51,7 @@ void Level::processAction() {
 	if (!background.isWithinInnerBound(player.getSpaceship())) {
 		Vector2f shift=background.getShift(player);
 		background.shiftPanels(shift*Background_Shift_Parallax_Coefficient);
+		background.rotatePanels(player.getSpaceship().getPosition());
 	}
 }
 
