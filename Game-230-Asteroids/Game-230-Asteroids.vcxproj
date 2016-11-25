@@ -152,6 +152,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Asteroid.h" />
     <ClInclude Include="Asteroids.h" />
     <ClInclude Include="Background.h" />
     <ClInclude Include="GameConstants.h" />
