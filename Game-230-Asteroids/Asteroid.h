@@ -21,6 +21,7 @@ public:
 		srand(time(NULL));
 		setOrigin(r, r);
 		angularVelocity=rand() % (Asteroid_Maximum_Angular_Velocity - Asteroid_Minimum_Angular_Velocity) + Asteroid_Minimum_Angular_Velocity;
+		angularVelocity *= (rand() % 2 == 0) ? -1 : 1;
 		switch (s) {
 		case AsteroidSize::Small:setTexture(&textures[0]); break;
 		case AsteroidSize::Medium:setTexture(&textures[1]); break;
@@ -28,7 +29,8 @@ public:
 		}
 	}
 	void setVelocity(Vector2f v) { velocity = v; }
-	void move() { CircleShape::move(velocity); }
+	void move() { CircleShape::move(velocity); rotate(angularVelocity); }
+	void shiftPosition(Vector2f v) { CircleShape::move(v); }
 	vector<Asteroid> damage(int d);
 	static void loadTextures();
 };

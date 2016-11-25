@@ -51,6 +51,15 @@ void Level::initializeAsteroids() {
 }
 
 void Level::spawnAsteroid() {
+	int i = 0;
+	while (i < spawnedAsteroids.size()) {
+		if (!spawnBound.intersects(spawnedAsteroids[i]->getGlobalBounds())) {
+			asteroids.push_back(spawnedAsteroids[i]);
+			spawnedAsteroids.erase(spawnedAsteroids.begin() + i);
+		}
+		else
+			++i;
+	}
 	if (spawnedAsteroids.size() < Minimum_Spawn_Asteroid_Number) {
 		shared_ptr<Asteroid> nextAsteroid = asteroids[0];
 		float x, y;
@@ -146,6 +155,8 @@ void Level::processAction() {
 		Vector2f shift=background.getShift(player);
 		background.shiftPanels(shift*Background_Shift_Parallax_Coefficient);
 		background.rotatePanels(player.getSpaceship().getPosition());
+		for (shared_ptr<Asteroid> a : spawnedAsteroids)
+			a->shiftPosition(shift);
 	}
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		a->move();
