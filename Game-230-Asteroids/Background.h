@@ -53,21 +53,21 @@ vector<shared_ptr<BackgroundPanel>> Background::getVisiblePanels() {
 
 Vector2f Background::getShift(Player &player) {
 	float x=0, y=0;
-	if (player.getSpaceship().getPosition().x < innerBound.left) {
-		x = innerBound.left - player.getSpaceship().getPosition().x;
-		player.setSpaceshipPosition(innerBound.left, player.getSpaceship().getPosition().y);
+	if (player.getSpaceship()->getPosition().x < innerBound.left) {
+		x = innerBound.left - player.getSpaceship()->getPosition().x;
+		player.setSpaceshipPosition(innerBound.left, player.getSpaceship()->getPosition().y);
 	}
-	if (player.getSpaceship().getPosition().x > innerBound.left + innerBound.width) {
-		x = innerBound.left + innerBound.width - player.getSpaceship().getPosition().x;
-		player.setSpaceshipPosition(innerBound.left + innerBound.width, player.getSpaceship().getPosition().y);
+	if (player.getSpaceship()->getPosition().x > innerBound.left + innerBound.width) {
+		x = innerBound.left + innerBound.width - player.getSpaceship()->getPosition().x;
+		player.setSpaceshipPosition(innerBound.left + innerBound.width, player.getSpaceship()->getPosition().y);
 	}
-	if (player.getSpaceship().getPosition().y < innerBound.top) {
-		y = innerBound.top - player.getSpaceship().getPosition().y;
-		player.setSpaceshipPosition(player.getSpaceship().getPosition().x,innerBound.top);
+	if (player.getSpaceship()->getPosition().y < innerBound.top) {
+		y = innerBound.top - player.getSpaceship()->getPosition().y;
+		player.setSpaceshipPosition(player.getSpaceship()->getPosition().x,innerBound.top);
 	}
-	if (player.getSpaceship().getPosition().y > innerBound.top + innerBound.height) {
-		y = innerBound.top + innerBound.height - player.getSpaceship().getPosition().y;
-		player.setSpaceshipPosition(player.getSpaceship().getPosition().x, innerBound.top + innerBound.height);
+	if (player.getSpaceship()->getPosition().y > innerBound.top + innerBound.height) {
+		y = innerBound.top + innerBound.height - player.getSpaceship()->getPosition().y;
+		player.setSpaceshipPosition(player.getSpaceship()->getPosition().x, innerBound.top + innerBound.height);
 	}
 	return Vector2f(x, y);
 }

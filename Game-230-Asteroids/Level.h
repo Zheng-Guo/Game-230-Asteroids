@@ -230,8 +230,8 @@ void Level::rebucket() {
 
 set<shared_ptr<Asteroid>> Level::getCollidibleAsteroids() {
 	set<shared_ptr<Asteroid>> collidibleAsteroids;
-	Vector2f spaceshipPosition = player.getSpaceship().getPosition();
-	float spaceshipRadius = player.getSpaceship().getRadius();
+	Vector2f spaceshipPosition = player.getSpaceship()->getPosition();
+	float spaceshipRadius = player.getSpaceship()->getRadius();
 	int i = (spaceshipPosition.x - Spawn_Bound_Left) / Bucket_Grid_Width, j = (spaceshipPosition.y - Spawn_Bound_Top) / Bucket_Grid_Height;
 	collidibleAsteroids.insert(bucketGrid[j][i].begin(), bucketGrid[j][i].end());
 	bool overlapTop = false, overlapBottom = false, overlapLeft = false, overlapRight = false;
@@ -272,11 +272,11 @@ set<shared_ptr<Asteroid>> Level::getCollidibleAsteroids() {
 
 bool Level::spaceshipCollision() {
 	set<shared_ptr<Asteroid>> collidibleAsteroids = getCollidibleAsteroids();
-	Spaceship spaceship = player.getSpaceship();
+	shared_ptr<Spaceship> spaceship = player.getSpaceship();
 	for (shared_ptr<Asteroid> a : collidibleAsteroids) {
-		Vector2f offset = a->getPosition() - spaceship.getPosition();
+		Vector2f offset = a->getPosition() - spaceship->getPosition();
 		float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
-		if (distance < a->getRadius() + spaceship.getRadius())
+		if (distance < a->getRadius() + spaceship->getRadius())
 			return true;
 	}
 	return false;
@@ -303,18 +303,18 @@ void Level::processAction() {
 		player.turnLeft();
 	if (playerRight)
 		player.turnRight();
-	if (!player.getSpaceship().getIsHit()) {
+	if (!player.isSpaceshipHit()) {
 		player.act();
-		if (!player.getSpaceship().getIsHit() && !background.isWithinInnerBound(player.getSpaceship())) {
+		if (!background.isWithinInnerBound(*player.getSpaceship())) {
 			Vector2f shift = background.getShift(player);
 			background.shiftPanels(shift*Background_Shift_Parallax_Coefficient);
-			background.rotatePanels(player.getSpaceship().getPosition());
+			background.rotatePanels(player.getSpaceship()->getPosition());
 			for (shared_ptr<Asteroid> a : spawnedAsteroids)
 				a->shiftPosition(shift);
 		}
 	}
 	rebucket();
-	if (player.getSpaceship().getIsHit()) {
+	if (player.isSpaceshipHit()) {
 		player.explode();
 	}
 	else if (spaceshipCollision()) {
@@ -369,13 +369,13 @@ void Level::render(RenderWindow &window) {
 		window.draw(*p);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		window.draw(*a);
-	if (!player.getSpaceship().getIsHit()) {
+	if (!player.isSpaceshipHit()) {
 		if (playerForward)
-			window.draw(player.getSpaceship().getEngineFlame());
-		window.draw(player.getSpaceship());
+			window.draw(player.getSpaceship()->getEngineFlame());
+		window.draw(*player.getSpaceship());
 	}
-	if (player.getSpaceship().getIsHit()) {
-		window.draw(player.getSpaceship().getExplosion());
+	if (player.isSpaceshipHit()) {
+		window.draw(player.getSpaceship()->getExplosion());
 	}
 	window.draw(lives);
 	window.draw(score);
