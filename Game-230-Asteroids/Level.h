@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cmath>
 #include <memory>
+#include <utility>
 #include "GameConstants.h"
 #include "Asteroid.h"
 #include "Background.h"
@@ -19,20 +20,29 @@ private:
 	FloatRect spawnBound;
 	vector<shared_ptr<Asteroid>> asteroids;
 	vector<shared_ptr<Asteroid>> spawnedAsteroids;
+	vector<shared_ptr<Asteroid>> bucketGrid[Bucket_Grid_Row_Number][Bucket_Grid_Column_Number];
+	vector<vector<pair<int,int>>> bucketAllocations;
+	FloatRect bucketGridBounds[Bucket_Grid_Row_Number][Bucket_Grid_Column_Number];
 	int asteroidNumberIncrement;
-	int spawnedAsteroidNumber;
 	int asteroidSpawningCounter;
 	Player player;
 	bool playerForward,playerBackward,playerLeft, playerRight;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
+	void rebucket();
 public:
 	Level():spawnBound(Spawn_Bound_Left,Spawn_Bound_Top,Spawn_Bound_Width,Spawn_Bound_Height),
 	asteroidNumberIncrement(0),
-	spawnedAsteroidNumber(0),
 	asteroidSpawningCounter(0){
+		
+		
 		player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
+		for (int i = 0; i < Bucket_Grid_Row_Number; i++) {
+			for (int j = 0; j < Bucket_Grid_Column_Number; j++) {
+				bucketGridBounds[i][j] = FloatRect(j*Bucket_Grid_Width, i*Bucket_Grid_Height, Bucket_Grid_Width, Bucket_Grid_Height);
+			}
+		}
 		Asteroid::loadTextures();
 		initializeAsteroids();
 	}
@@ -44,6 +54,12 @@ public:
 
 void Level::initializeAsteroids() {
 	asteroids.clear();
+	spawnedAsteroids.clear();
+	for (int i = 0; i < Bucket_Grid_Row_Number; i++) {
+		for (int j = 0; j < Bucket_Grid_Column_Number; j++) {
+			bucketGrid[i][j].clear();
+		}
+	}
 	for (int i = 0; i < Initial_Asteroid_Number + asteroidNumberIncrement; i++) {
 		shared_ptr<Asteroid> a=make_shared<Asteroid>(Asteroid_Large_Radius, AsteroidSize::Large);
 		asteroids.push_back(a);
@@ -68,19 +84,19 @@ void Level::spawnAsteroid() {
 			suitableSpawnPoint = true;
 			int spawnPosition = rand() % 4;
 			if (spawnPosition == 0) {
-				x = Spawn_Bound_Left;
+				x = Spawn_Bound_Left+1;
 				y = rand() % Spawn_Bound_Height + Spawn_Bound_Top;
 			}
 			if (spawnPosition == 1) {
 				x = rand()%Spawn_Bound_Width+Spawn_Bound_Left;
-				y = Spawn_Bound_Top;
+				y = Spawn_Bound_Top+1;
 			}
 			if (spawnPosition == 2) {
-				x = Spawn_Bound_Left+Spawn_Bound_Width;
+				x = Spawn_Bound_Left+Spawn_Bound_Width-1;
 				y = rand() % Spawn_Bound_Height + Spawn_Bound_Top;
 			}
 			if (spawnPosition == 3) {
-				x = rand() % Spawn_Bound_Width + Spawn_Bound_Left;
+				x = rand() % Spawn_Bound_Width + Spawn_Bound_Left-1;
 				y = Spawn_Bound_Top+Spawn_Bound_Height;
 			}
 			nextAsteroid->setPosition(x, y);
@@ -129,6 +145,69 @@ void Level::spawnAsteroids() {
 	}
 }
 
+void Level::rebucket() {
+	for (int i = 0; i < Bucket_Grid_Row_Number; i++) {
+		for (int j = 0; j < Bucket_Grid_Column_Number; j++) {
+			bucketGrid[i][j].clear();
+		}
+	}
+	bucketAllocations.clear();
+	for (shared_ptr<Asteroid> a : spawnedAsteroids) {
+		vector<pair<int, int>> bucketAllocation;
+		if (a->getPosition().x > Spawn_Bound_Left&&a->getPosition().x<Spawn_Bound_Left + Spawn_Bound_Width&&a->getPosition().y>Spawn_Bound_Top&&a->getPosition().y < Spawn_Bound_Top + Spawn_Bound_Height) {
+			int i = a->getPosition().x >= 0 ? a->getPosition().x / Bucket_Grid_Width + 1 : 0, j = a->getPosition().y >= 0 ? a->getPosition().y / Bucket_Grid_Height + 1 : 0;
+			bucketGrid[i][j].push_back(a);
+			bucketAllocation.push_back(pair<int, int>(i, j));
+			bool overlapTop = false, overlapBottom = false, overlapLeft = false, overlapRight = false;
+			if (i > 0 && a->getPosition().y - a->getRadius() <= (i - 1)*Bucket_Grid_Height)
+				overlapTop = true;
+			if (i < Bucket_Grid_Row_Number - 2 && a->getPosition().y + a->getRadius() >= i*Bucket_Grid_Height)
+				overlapBottom = true;
+			if (j > 0 && a->getPosition().x - a->getRadius() <= (j - 1)*Bucket_Grid_Width)
+				overlapLeft = true;
+			if (j < Bucket_Grid_Column_Number - 2 && a->getPosition().x + a->getRadius() >= j*Bucket_Grid_Width)
+				overlapRight = true;
+			if (overlapTop) {
+				if (overlapLeft) {
+					bucketGrid[i - 1][j - 1].push_back(a);
+					bucketAllocation.push_back(pair<int, int>(i - 1, j - 1));
+				}
+				else if (overlapRight) {
+					bucketGrid[i - 1][j + 1].push_back(a);
+					bucketAllocation.push_back(pair<int, int>(i - 1, j + 1));
+				}
+				else {
+					bucketGrid[i - 1][j].push_back(a);
+					bucketAllocation.push_back(pair<int, int>(i - 1, j));
+				}
+			}
+			else if (overlapBottom) {
+				if (overlapLeft) {
+					bucketGrid[i + 1][j - 1].push_back(a);
+					bucketAllocation.push_back(pair<int, int>(i + 1, j - 1));
+				}
+				else if (overlapRight) {
+					bucketGrid[i + 1][j + 1].push_back(a);
+					bucketAllocation.push_back(pair<int, int>(i + 1, j + 1));
+				}
+				else {
+					bucketGrid[i + 1][j].push_back(a);
+					bucketAllocation.push_back(pair<int, int>(i + 1, j));
+				}
+			}
+			else if (overlapLeft) {
+				bucketGrid[i][j - 1].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(i, j - 1));
+			}
+			else if (overlapRight) {
+				bucketGrid[i][j + 1].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(i, j + 1));
+			}
+			bucketAllocations.push_back(bucketAllocation);
+		}
+	}
+}
+
 void Level::processEvent(Event event) {
 	playerForward=false,playerBackward=false,playerLeft = false, playerRight = false;
 	if (Keyboard::isKeyPressed(Keyboard::Up))
@@ -158,6 +237,27 @@ void Level::processAction() {
 		for (shared_ptr<Asteroid> a : spawnedAsteroids)
 			a->shiftPosition(shift);
 	}
+	rebucket();
+	vector<Vector2f> newVelocities;
+	for (int i = 0; i < spawnedAsteroids.size()&&i<bucketAllocations.size();i++) {
+		vector<pair<int, int>> bucketAllocation = bucketAllocations[i];
+		bool collided = false;
+		vector<Vector2f> velocities;
+		Vector2f resultantVelocity(0, 0);
+		for (pair<int, int> p : bucketAllocation) {
+			Vector2f newVelocity = spawnedAsteroids[i]->newVelocity(bucketGrid[p.first][p.second]);
+			if (newVelocity != spawnedAsteroids[i]->getVelocity()) {
+				resultantVelocity += newVelocity;
+				collided = true;
+			}
+		}
+		if (collided)
+			newVelocities.push_back(resultantVelocity);
+		else
+			newVelocities.push_back(spawnedAsteroids[i]->getVelocity());
+	}
+	for (int i = 0; i < spawnedAsteroids.size()&&i<newVelocities.size(); i++)
+		spawnedAsteroids[i]->setVelocity(newVelocities[i]);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		a->move();
 	spawnAsteroids();
