@@ -1,6 +1,9 @@
 #pragma once
 #include <SFML\Graphics.hpp>
+#include <iostream>
 #include <vector>
+#include <map>
+#include <set>
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
@@ -21,7 +24,7 @@ private:
 	vector<shared_ptr<Asteroid>> asteroids;
 	vector<shared_ptr<Asteroid>> spawnedAsteroids;
 	vector<shared_ptr<Asteroid>> bucketGrid[Bucket_Grid_Row_Number][Bucket_Grid_Column_Number];
-	vector<vector<pair<int,int>>> bucketAllocations;
+	map<shared_ptr<Asteroid>,vector<pair<int,int>>> bucketAllocations;
 	FloatRect bucketGridBounds[Bucket_Grid_Row_Number][Bucket_Grid_Column_Number];
 	int asteroidNumberIncrement;
 	int asteroidSpawningCounter;
@@ -155,55 +158,51 @@ void Level::rebucket() {
 	for (shared_ptr<Asteroid> a : spawnedAsteroids) {
 		vector<pair<int, int>> bucketAllocation;
 		if (a->getPosition().x > Spawn_Bound_Left&&a->getPosition().x<Spawn_Bound_Left + Spawn_Bound_Width&&a->getPosition().y>Spawn_Bound_Top&&a->getPosition().y < Spawn_Bound_Top + Spawn_Bound_Height) {
-			int i = a->getPosition().x >= 0 ? a->getPosition().x / Bucket_Grid_Width + 1 : 0, j = a->getPosition().y >= 0 ? a->getPosition().y / Bucket_Grid_Height + 1 : 0;
-			bucketGrid[i][j].push_back(a);
-			bucketAllocation.push_back(pair<int, int>(i, j));
+			int i = (a->getPosition().x-Spawn_Bound_Left) / Bucket_Grid_Width, j = (a->getPosition().y-Spawn_Bound_Top) / Bucket_Grid_Height;
+			bucketGrid[j][i].push_back(a);
+			bucketAllocation.push_back(pair<int, int>(j, i));
 			bool overlapTop = false, overlapBottom = false, overlapLeft = false, overlapRight = false;
-			if (i > 0 && a->getPosition().y - a->getRadius() <= (i - 1)*Bucket_Grid_Height)
-				overlapTop = true;
-			if (i < Bucket_Grid_Row_Number - 2 && a->getPosition().y + a->getRadius() >= i*Bucket_Grid_Height)
-				overlapBottom = true;
-			if (j > 0 && a->getPosition().x - a->getRadius() <= (j - 1)*Bucket_Grid_Width)
+			if (i > 0 && a->getPosition().x - a->getRadius() < (i - 1)*Bucket_Grid_Width)
 				overlapLeft = true;
-			if (j < Bucket_Grid_Column_Number - 2 && a->getPosition().x + a->getRadius() >= j*Bucket_Grid_Width)
+			if (i < Bucket_Grid_Column_Number - 1 && a->getPosition().x + a->getRadius() > i*Bucket_Grid_Width)
 				overlapRight = true;
+			if (j > 0 && a->getPosition().y - a->getRadius() < (j - 1)*Bucket_Grid_Height)
+				overlapTop = true;
+			if (j < Bucket_Grid_Row_Number - 1 && a->getPosition().y + a->getRadius() > j*Bucket_Grid_Height)
+				overlapBottom = true;
 			if (overlapTop) {
-				if (overlapLeft) {
-					bucketGrid[i - 1][j - 1].push_back(a);
-					bucketAllocation.push_back(pair<int, int>(i - 1, j - 1));
-				}
-				else if (overlapRight) {
-					bucketGrid[i - 1][j + 1].push_back(a);
-					bucketAllocation.push_back(pair<int, int>(i - 1, j + 1));
-				}
-				else {
-					bucketGrid[i - 1][j].push_back(a);
-					bucketAllocation.push_back(pair<int, int>(i - 1, j));
-				}
+				bucketGrid[j - 1][i].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(j - 1, i));
 			}
-			else if (overlapBottom) {
-				if (overlapLeft) {
-					bucketGrid[i + 1][j - 1].push_back(a);
-					bucketAllocation.push_back(pair<int, int>(i + 1, j - 1));
-				}
-				else if (overlapRight) {
-					bucketGrid[i + 1][j + 1].push_back(a);
-					bucketAllocation.push_back(pair<int, int>(i + 1, j + 1));
-				}
-				else {
-					bucketGrid[i + 1][j].push_back(a);
-					bucketAllocation.push_back(pair<int, int>(i + 1, j));
-				}
+			if (overlapBottom) {
+				bucketGrid[j + 1][i].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(j + 1, i));
 			}
-			else if (overlapLeft) {
-				bucketGrid[i][j - 1].push_back(a);
-				bucketAllocation.push_back(pair<int, int>(i, j - 1));
+			if (overlapLeft) {
+				bucketGrid[j][i - 1].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(j, i - 1));
 			}
-			else if (overlapRight) {
-				bucketGrid[i][j + 1].push_back(a);
-				bucketAllocation.push_back(pair<int, int>(i, j + 1));
+			if (overlapRight) {
+				bucketGrid[j][i + 1].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(j, i + 1));
 			}
-			bucketAllocations.push_back(bucketAllocation);
+			if (overlapTop&&overlapLeft) {
+				bucketGrid[j - 1][i - 1].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(j - 1, i - 1));
+			}
+			if (overlapTop&&overlapRight) {
+				bucketGrid[j - 1][i + 1].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(j - 1, i + 1));
+			}
+			if (overlapBottom&&overlapLeft) {
+				bucketGrid[j + 1][i - 1].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(j + 1, i - 1));
+			}
+			if (overlapBottom&&overlapRight) {
+				bucketGrid[j + 1][i + 1].push_back(a);
+				bucketAllocation.push_back(pair<int, int>(j + 1, i + 1));
+			}
+			bucketAllocations[a] = bucketAllocation;
 		}
 	}
 }
@@ -238,26 +237,42 @@ void Level::processAction() {
 			a->shiftPosition(shift);
 	}
 	rebucket();
-	vector<Vector2f> newVelocities;
-	for (int i = 0; i < spawnedAsteroids.size()&&i<bucketAllocations.size();i++) {
-		vector<pair<int, int>> bucketAllocation = bucketAllocations[i];
-		bool collided = false;
-		vector<Vector2f> velocities;
-		Vector2f resultantVelocity(0, 0);
-		for (pair<int, int> p : bucketAllocation) {
-			Vector2f newVelocity = spawnedAsteroids[i]->newVelocity(bucketGrid[p.first][p.second]);
-			if (newVelocity != spawnedAsteroids[i]->getVelocity()) {
-				resultantVelocity += newVelocity;
-				collided = true;
-			}
+	for (int i = 0; i < 7; i++) {
+		for (int j = 0; j < 7; j++) {
+			cout << "(" << i << "," << j << "):";
+			for (auto a : bucketGrid[i][j])
+				cout << "[" << a->getPosition().x << "," << a->getPosition().y << "] ";
 		}
-		if (collided)
-			newVelocities.push_back(resultantVelocity);
-		else
-			newVelocities.push_back(spawnedAsteroids[i]->getVelocity());
+		cout << endl;
 	}
-	for (int i = 0; i < spawnedAsteroids.size()&&i<newVelocities.size(); i++)
-		spawnedAsteroids[i]->setVelocity(newVelocities[i]);
+	for (auto a : bucketAllocations) {
+		cout << "(" << a.first->getPosition().x << "," << a.first->getPosition().y << "): ";
+		for (auto b : a.second)
+			cout << "[" << b.first << "," << b.second << "]";
+		cout << endl;
+	}
+	map<shared_ptr<Asteroid>,Vector2f> newVelocities;
+	for (int i = 0; i < spawnedAsteroids.size()&&i<bucketAllocations.size();i++) {
+		if (bucketAllocations.find(spawnedAsteroids[i]) != bucketAllocations.end()) {
+			vector<pair<int, int>> bucketAllocation = bucketAllocations[spawnedAsteroids[i]];
+			set<shared_ptr<Asteroid>> collidibleAsteroids;
+			for (pair<int, int> p : bucketAllocation) {
+				vector<shared_ptr<Asteroid>> bucket = bucketGrid[p.first][p.second];
+				collidibleAsteroids.insert(bucket.begin(), bucket.end());
+			}
+			Vector2f newVelocity = spawnedAsteroids[i]->newVelocity(collidibleAsteroids);
+			if (newVelocity != spawnedAsteroids[i]->getVelocity()) {
+				newVelocities[spawnedAsteroids[i]] = newVelocity;
+			}
+			else {
+				newVelocities[spawnedAsteroids[i]] = spawnedAsteroids[i]->getVelocity();
+			}			
+		}
+	}
+	for (auto a : newVelocities)
+		cout << "[" << a.first->getPosition().x << "," << a.first->getPosition().y << "]:" << "(" << a.second.x << "," << a.second.y << ")" << endl;
+	for (auto a:newVelocities)
+		a.first->setVelocity(a.second);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		a->move();
 	spawnAsteroids();

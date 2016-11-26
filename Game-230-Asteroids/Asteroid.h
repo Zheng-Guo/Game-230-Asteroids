@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <set>
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
@@ -36,7 +37,7 @@ public:
 	int getMass() { return mass; }
 	void move() { CircleShape::move(velocity); rotate(angularVelocity); }
 	void shiftPosition(Vector2f v) { CircleShape::move(v); }
-	Vector2f newVelocity(vector<shared_ptr<Asteroid>> bucket);
+	Vector2f newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids);
 	vector<Asteroid> damage(int d);
 	static void loadTextures();
 };
@@ -50,19 +51,19 @@ void Asteroid::loadTextures() {
 }
 
 bool Asteroid::collideWithAnotherAsteroid(shared_ptr<Asteroid> a) {
-	if (a->getPosition().x<getPosition().x&&a->getVelocity().x <= velocity.x ||
+/*	if (a->getPosition().x<getPosition().x&&a->getVelocity().x <= velocity.x ||
 		a->getPosition().x>getPosition().x&&a->getVelocity().x >= velocity.x ||
 		a->getPosition().y<getPosition().y&&a->getVelocity().y <= velocity.y ||
 		a->getPosition().y>getPosition().y&&a->getVelocity().y >= velocity.y)
 		return false;
-	else {
+	else {*/
 		Vector2f offset = a->getPosition() - getPosition();
 		float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
 		if (distance > getRadius() + a->getRadius())
 			return false;
 		else
 			return true;
-	}
+//	}
 }
 
 Vector2f Asteroid::velocityAfterCollision(shared_ptr<Asteroid> a) {
@@ -74,21 +75,21 @@ Vector2f Asteroid::velocityAfterCollision(shared_ptr<Asteroid> a) {
 	float newV1X1 = (-firstOrderCoefficientX + sqrt(determinantX)) / 2 / secondOrderCoefficient, newV1X2 = (-firstOrderCoefficientX - sqrt(determinantX)) / 2 / secondOrderCoefficient;
 	float newV1Y1 = (-firstOrderCoefficientY + sqrt(determinantY)) / 2 / secondOrderCoefficient, newV1Y2 = (-firstOrderCoefficientY - sqrt(determinantY)) / 2 / secondOrderCoefficient;
 	float solutionX, solutionY;
-	if (newV1X1 - v1x < 0.0001)
+	if (abs(newV1X1 - v1x) < Epsilon)
 		solutionX = newV1X2;
 	else
 		solutionX = newV1X1;
-	if (newV1Y1 - v1y < 0.0001)
+	if (abs(newV1Y1 - v1y) < Epsilon)
 		solutionY = newV1Y2;
 	else
 		solutionY = newV1Y1;
 	return Vector2f(solutionX, solutionY);
 }
 
-Vector2f Asteroid::newVelocity(vector<shared_ptr<Asteroid>> bucket) {
+Vector2f Asteroid::newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids) {
 	Vector2f resultantVelocity(0,0);
 	bool collided = false;
-	for (shared_ptr<Asteroid> a : bucket) {
+	for (shared_ptr<Asteroid> a : collidibleAsteroids) {
 		if (this!=a.get()&&collideWithAnotherAsteroid(a)) {
 			resultantVelocity += velocityAfterCollision(a);
 			collided = true;
