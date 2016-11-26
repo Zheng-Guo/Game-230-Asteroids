@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML\Graphics.hpp>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <map>
 #include <set>
@@ -27,20 +28,25 @@ private:
 	map<shared_ptr<Asteroid>,vector<pair<int,int>>> bucketAllocations;
 	FloatRect bucketGridBounds[Bucket_Grid_Row_Number][Bucket_Grid_Column_Number];
 	int asteroidNumberIncrement;
-	int asteroidSpawningCounter;
+	int asteroidSpawningCounter;	
+	Font font;
+	Text lives;
+	Text score;
 	Player player;
 	bool playerForward,playerBackward,playerLeft, playerRight;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
 	void rebucket();
+	set<shared_ptr<Asteroid>> getCollidibleAsteroids();
+	bool spaceshipCollision();
 public:
 	Level():spawnBound(Spawn_Bound_Left,Spawn_Bound_Top,Spawn_Bound_Width,Spawn_Bound_Height),
 	asteroidNumberIncrement(0),
-	asteroidSpawningCounter(0){
-		
-		
+	asteroidSpawningCounter(0){		
 		player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
+		player.setLives(3);
+		player.setScore(0);
 		for (int i = 0; i < Bucket_Grid_Row_Number; i++) {
 			for (int j = 0; j < Bucket_Grid_Column_Number; j++) {
 				bucketGridBounds[i][j] = FloatRect(j*Bucket_Grid_Width, i*Bucket_Grid_Height, Bucket_Grid_Width, Bucket_Grid_Height);
@@ -48,6 +54,21 @@ public:
 		}
 		Asteroid::loadTextures();
 		initializeAsteroids();
+		font.loadFromFile("Tinos-Regular.ttf");
+		ostringstream ss;
+		ss << "Life: " << player.getLives();
+		lives.setString(ss.str());
+		lives.setFont(font);
+		lives.setCharacterSize(Stat_Character_Size);
+		lives.setFillColor(Color::Red);
+		lives.setPosition(Life_X_Position, Life_Y_Position);
+		ss.str("");
+		ss << "Score: " << player.getScore();
+		score.setString(ss.str());
+		score.setFont(font);
+		score.setCharacterSize(Stat_Character_Size);
+		score.setFillColor(Color::Yellow);
+		score.setPosition(Score_X_Position, Score_Y_Position);
 	}
 	void setDisplayWindow(FloatRect w) { background.setDisplayWindow(w); }
 	void processEvent(Event event);
@@ -73,7 +94,6 @@ void Level::spawnAsteroid() {
 	int i = 0;
 	while (i < spawnedAsteroids.size()) {
 		if (!spawnBound.intersects(spawnedAsteroids[i]->getGlobalBounds())) {
-			//cout<< "[" << spawnedAsteroids[i]->getPosition().x << "," << spawnedAsteroids[i]->getPosition().y << "]: ("<< spawnedAsteroids[i] ->getVelocity().x<<","<< spawnedAsteroids[i]->getVelocity().y<<")"<<endl;
 			asteroids.push_back(spawnedAsteroids[i]);
 			spawnedAsteroids.erase(spawnedAsteroids.begin() + i);
 		}
@@ -208,6 +228,60 @@ void Level::rebucket() {
 	}
 }
 
+set<shared_ptr<Asteroid>> Level::getCollidibleAsteroids() {
+	set<shared_ptr<Asteroid>> collidibleAsteroids;
+	Vector2f spaceshipPosition = player.getSpaceship().getPosition();
+	float spaceshipRadius = player.getSpaceship().getRadius();
+	int i = (spaceshipPosition.x - Spawn_Bound_Left) / Bucket_Grid_Width, j = (spaceshipPosition.y - Spawn_Bound_Top) / Bucket_Grid_Height;
+	collidibleAsteroids.insert(bucketGrid[j][i].begin(), bucketGrid[j][i].end());
+	bool overlapTop = false, overlapBottom = false, overlapLeft = false, overlapRight = false;
+	if (i > 0 && spaceshipPosition.x - spaceshipRadius < (i - 1)*Bucket_Grid_Width)
+		overlapLeft = true;
+	if (i < Bucket_Grid_Column_Number - 1 && spaceshipPosition.x + spaceshipRadius > i*Bucket_Grid_Width)
+		overlapRight = true;
+	if (j > 0 && spaceshipPosition.y - spaceshipRadius < (j - 1)*Bucket_Grid_Height)
+		overlapTop = true;
+	if (j < Bucket_Grid_Row_Number - 1 && spaceshipPosition.y + spaceshipRadius > j*Bucket_Grid_Height)
+		overlapBottom = true;
+	if (overlapTop) {
+		collidibleAsteroids.insert(bucketGrid[j - 1][i].begin(), bucketGrid[j - 1][i].end());
+	}
+	if (overlapBottom) {
+		collidibleAsteroids.insert(bucketGrid[j + 1][i].begin(), bucketGrid[j + 1][i].end());
+	}
+	if (overlapLeft) {
+		collidibleAsteroids.insert(bucketGrid[j][i-1].begin(), bucketGrid[j][i-1].end());
+	}
+	if (overlapRight) {
+		collidibleAsteroids.insert(bucketGrid[j][i+1].begin(), bucketGrid[j][i+1].end());
+	}
+	if (overlapTop&&overlapLeft) {
+		collidibleAsteroids.insert(bucketGrid[j - 1][i-1].begin(), bucketGrid[j - 1][i-1].end());
+	}
+	if (overlapTop&&overlapRight) {
+		collidibleAsteroids.insert(bucketGrid[j - 1][i+1].begin(), bucketGrid[j - 1][i+1].end());
+	}
+	if (overlapBottom&&overlapLeft) {
+		collidibleAsteroids.insert(bucketGrid[j + 1][i-1].begin(), bucketGrid[j + 1][i-1].end());
+	}
+	if (overlapBottom&&overlapRight) {
+		collidibleAsteroids.insert(bucketGrid[j + 1][i+1].begin(), bucketGrid[j + 1][i+1].end());
+	}
+	return collidibleAsteroids;
+}
+
+bool Level::spaceshipCollision() {
+	set<shared_ptr<Asteroid>> collidibleAsteroids = getCollidibleAsteroids();
+	Spaceship spaceship = player.getSpaceship();
+	for (shared_ptr<Asteroid> a : collidibleAsteroids) {
+		Vector2f offset = a->getPosition() - spaceship.getPosition();
+		float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+		if (distance < a->getRadius() + spaceship.getRadius())
+			return true;
+	}
+	return false;
+}
+
 void Level::processEvent(Event event) {
 	playerForward=false,playerBackward=false,playerLeft = false, playerRight = false;
 	if (Keyboard::isKeyPressed(Keyboard::Up))
@@ -237,7 +311,14 @@ void Level::processAction() {
 		for (shared_ptr<Asteroid> a : spawnedAsteroids)
 			a->shiftPosition(shift);
 	}
-	rebucket();/*
+	rebucket();
+	if (spaceshipCollision()) {
+		player.loseLife();
+		ostringstream ss;
+		ss << "Life: " << player.getLives();
+		lives.setString(ss.str());
+	}
+	/*
 	for (int i = 0; i < 7; i++) {
 		for (int j = 0; j < 7; j++) {
 			cout << "(" << i << "," << j << "):";
@@ -270,8 +351,6 @@ void Level::processAction() {
 			}			
 		}
 	}
-//	for (auto a : newVelocities)
-//		cout << "[" << a.first->getPosition().x << "," << a.first->getPosition().y << "]:" << "(" << a.second.x << "," << a.second.y << ")" << endl;
 	for (auto a:newVelocities)
 		a.first->setVelocity(a.second);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
@@ -288,4 +367,6 @@ void Level::render(RenderWindow &window) {
 	if (playerForward)
 		window.draw(player.getSpaceship().getEngineFlame());
 	window.draw(player.getSpaceship());
+	window.draw(lives);
+	window.draw(score);
 }

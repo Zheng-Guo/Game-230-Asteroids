@@ -18,11 +18,10 @@ private:
 public:
 	Asteroids() : window(VideoMode(Window_Width, Window_Height), "Asteroids", Style::Close | Style::Titlebar) {
 		window.setPosition(Vector2i(400, 0));
-		View v(FloatRect(-400, -400, 1800, 1800));
-		window.setView(v);
+		//View v(FloatRect(-400, -400, 1800, 1800));
+		//window.setView(v);
 		level.setDisplayWindow(FloatRect(0, 0, Window_Width, Window_Height));
 		srand(time(NULL));
-		//Vertex horizontalVertices[8][2], verticalVertices[8][2];
 		for (int i = -1; i < 7; i++) {
 			horizontalVertices[i][0].position = Vector2f(-200, i * 200);
 			horizontalVertices[i][1].position = Vector2f(1200, i * 200);

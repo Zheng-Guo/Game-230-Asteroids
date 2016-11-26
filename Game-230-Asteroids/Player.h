@@ -8,6 +8,8 @@ using namespace sf;
 class Player {
 private:
 	Spaceship spaceship;
+	int lives;
+	int score;
 public:
 	Player() :spaceship(Spaceship_Size, 90, Spaceship_Thrust,Spaceship_Full_Speed,Spaceship_Angular_Speed) {
 		spaceship.setSpaceshipTexture(Spaceship_Texture);
@@ -21,6 +23,11 @@ public:
 	//void moveBackward() { spaceship.moveBackward(); }
 	void turnLeft() { spaceship.turnLeft(); }
 	void turnRight() { spaceship.turnRight(); }
+	void setLives(int l) { lives = l; }
+	int getLives() { return lives; }
+	void loseLife() { lives--; }
+	void setScore(int s) { score = s; }
+	int getScore() { return score; }
 	void act();
 };
 
