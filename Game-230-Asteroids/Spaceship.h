@@ -14,19 +14,36 @@ private:
 	RectangleShape flame;
 	Texture texture;
 	Texture flameTexture;
+	Texture explosionTexture;
+	RectangleShape explosion;
+	int explosionCounter;
+	int explosionTextureX, explosionTextureY;
+	int explosionSpeed;
 	float direction;
 	float angularSpeed;
 	float thrust, fullSpeed;
 	Vector2f velocity;
+	bool isHit,spaceshipExploded;
 public:
 	Spaceship(float size,float direction,float thrust,float fullSpeed,float angularSpeed):CircleShape(size),
 	direction(direction),
 	thrust(thrust),
 	fullSpeed(fullSpeed),
-	angularSpeed(angularSpeed){
+	angularSpeed(angularSpeed),
+	explosion(Vector2f(Spaceship_Size*2,Spaceship_Size*2)),
+	explosionCounter(0),
+	explosionTextureX(1),
+	explosionTextureY(0),
+	explosionSpeed(Explosion_Speed),
+	isHit(false),
+	spaceshipExploded(false){
 		setOrigin(size, size);
 		rotate(direction);
 		flame.rotate(direction);
+		explosionTexture.loadFromFile(Spaceship_Explosion_Texture);
+		explosion.setTexture(&explosionTexture);
+		explosion.setTextureRect(IntRect(0, 0, 256, 256));
+		explosion.setOrigin(Spaceship_Size, Spaceship_Size);
 	}
 
 	void setPosition(float x,float y);
@@ -41,16 +58,21 @@ public:
 	float getFullThrottle() { return fullSpeed; }
 	void setVelocity(Vector2f v) { velocity = v; }
 	Vector2f getVelocity() { return velocity; }
+	void setIsHit(bool t) { isHit = t; }
+	bool getIsHit() { return isHit; }
 	void moveForward();
 	//void moveBackward();
 	void turnLeft();
 	void turnRight();
 	void move();
+	void explode();
+	RectangleShape getExplosion() { return explosion; }
 };
 
 void Spaceship::setPosition(float x, float y) {
 	CircleShape::setPosition(x, y);
 	flame.setPosition(x, y);
+	explosion.setPosition(x, y);
 }
 
 void Spaceship::setSpaceshipTexture(const char textureFile[]) {
@@ -121,4 +143,26 @@ void Spaceship::turnRight() {
 void Spaceship::move() {
 	CircleShape::move(velocity);
 	flame.move(velocity);
+	explosion.move(velocity);
+}
+
+void Spaceship::explode() {
+	if (!spaceshipExploded) {
+		if (explosionCounter < explosionSpeed) {
+			explosionCounter++;
+		}
+		else {
+			explosionCounter = 0;
+			explosion.setTextureRect(IntRect(explosionTextureX * 256, explosionTextureY * 256, 256, 256));
+			++explosionTextureX;
+			if (explosionTextureX >= Explosion_Texture_Column_Number) {
+				++explosionTextureY;
+				explosionTextureX = 0;
+			}
+			if (explosionTextureY >= Explosion_Texture_Row_Number) {
+				explosionTextureY = 0;
+				spaceshipExploded = true;
+			}
+		}
+	}
 }

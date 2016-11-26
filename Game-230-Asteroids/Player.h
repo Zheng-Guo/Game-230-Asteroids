@@ -19,16 +19,17 @@ public:
 	}
 	Spaceship& getSpaceship() { return spaceship; }
 	void setSpaceshipPosition(float x, float y) { spaceship.setPosition(x, y); }
-	void moveForward() { spaceship.moveForward(); }
+	void moveForward() { if(!spaceship.getIsHit()) spaceship.moveForward(); }
 	//void moveBackward() { spaceship.moveBackward(); }
-	void turnLeft() { spaceship.turnLeft(); }
-	void turnRight() { spaceship.turnRight(); }
+	void turnLeft() { if (!spaceship.getIsHit()) spaceship.turnLeft(); }
+	void turnRight() { if (!spaceship.getIsHit()) spaceship.turnRight(); }
 	void setLives(int l) { lives = l; }
 	int getLives() { return lives; }
-	void loseLife() { lives--; }
+	void loseLife() { lives--; spaceship.setIsHit(true); }
 	void setScore(int s) { score = s; }
 	int getScore() { return score; }
 	void act();
+	void explode() { spaceship.explode(); }
 };
 
 void Player::act() {

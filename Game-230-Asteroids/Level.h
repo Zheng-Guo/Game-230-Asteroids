@@ -303,16 +303,21 @@ void Level::processAction() {
 		player.turnLeft();
 	if (playerRight)
 		player.turnRight();
-	player.act();
-	if (!background.isWithinInnerBound(player.getSpaceship())) {
-		Vector2f shift=background.getShift(player);
-		background.shiftPanels(shift*Background_Shift_Parallax_Coefficient);
-		background.rotatePanels(player.getSpaceship().getPosition());
-		for (shared_ptr<Asteroid> a : spawnedAsteroids)
-			a->shiftPosition(shift);
+	if (!player.getSpaceship().getIsHit()) {
+		player.act();
+		if (!player.getSpaceship().getIsHit() && !background.isWithinInnerBound(player.getSpaceship())) {
+			Vector2f shift = background.getShift(player);
+			background.shiftPanels(shift*Background_Shift_Parallax_Coefficient);
+			background.rotatePanels(player.getSpaceship().getPosition());
+			for (shared_ptr<Asteroid> a : spawnedAsteroids)
+				a->shiftPosition(shift);
+		}
 	}
 	rebucket();
-	if (spaceshipCollision()) {
+	if (player.getSpaceship().getIsHit()) {
+		player.explode();
+	}
+	else if (spaceshipCollision()) {
 		player.loseLife();
 		ostringstream ss;
 		ss << "Life: " << player.getLives();
@@ -364,9 +369,14 @@ void Level::render(RenderWindow &window) {
 		window.draw(*p);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		window.draw(*a);
-	if (playerForward)
-		window.draw(player.getSpaceship().getEngineFlame());
-	window.draw(player.getSpaceship());
+	if (!player.getSpaceship().getIsHit()) {
+		if (playerForward)
+			window.draw(player.getSpaceship().getEngineFlame());
+		window.draw(player.getSpaceship());
+	}
+	if (player.getSpaceship().getIsHit()) {
+		window.draw(player.getSpaceship().getExplosion());
+	}
 	window.draw(lives);
 	window.draw(score);
 }
