@@ -73,6 +73,7 @@ void Level::spawnAsteroid() {
 	int i = 0;
 	while (i < spawnedAsteroids.size()) {
 		if (!spawnBound.intersects(spawnedAsteroids[i]->getGlobalBounds())) {
+			//cout<< "[" << spawnedAsteroids[i]->getPosition().x << "," << spawnedAsteroids[i]->getPosition().y << "]: ("<< spawnedAsteroids[i] ->getVelocity().x<<","<< spawnedAsteroids[i]->getVelocity().y<<")"<<endl;
 			asteroids.push_back(spawnedAsteroids[i]);
 			spawnedAsteroids.erase(spawnedAsteroids.begin() + i);
 		}
@@ -236,7 +237,7 @@ void Level::processAction() {
 		for (shared_ptr<Asteroid> a : spawnedAsteroids)
 			a->shiftPosition(shift);
 	}
-	rebucket();
+	rebucket();/*
 	for (int i = 0; i < 7; i++) {
 		for (int j = 0; j < 7; j++) {
 			cout << "(" << i << "," << j << "):";
@@ -250,7 +251,7 @@ void Level::processAction() {
 		for (auto b : a.second)
 			cout << "[" << b.first << "," << b.second << "]";
 		cout << endl;
-	}
+	}*/
 	map<shared_ptr<Asteroid>,Vector2f> newVelocities;
 	for (int i = 0; i < spawnedAsteroids.size()&&i<bucketAllocations.size();i++) {
 		if (bucketAllocations.find(spawnedAsteroids[i]) != bucketAllocations.end()) {
@@ -269,8 +270,8 @@ void Level::processAction() {
 			}			
 		}
 	}
-	for (auto a : newVelocities)
-		cout << "[" << a.first->getPosition().x << "," << a.first->getPosition().y << "]:" << "(" << a.second.x << "," << a.second.y << ")" << endl;
+//	for (auto a : newVelocities)
+//		cout << "[" << a.first->getPosition().x << "," << a.first->getPosition().y << "]:" << "(" << a.second.x << "," << a.second.y << ")" << endl;
 	for (auto a:newVelocities)
 		a.first->setVelocity(a.second);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)

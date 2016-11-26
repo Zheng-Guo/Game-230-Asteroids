@@ -17,8 +17,10 @@ private:
 	int mass;
 	Vector2f velocity;
 	float angularVelocity;
+	set<shared_ptr<Asteroid>> previouslyCollidedAsteroids;
 	bool collideWithAnotherAsteroid(shared_ptr<Asteroid> a);
 	Vector2f velocityAfterCollision(shared_ptr<Asteroid> a);
+	Vector2f previousPosition;
 public:
 	Asteroid(float r, AsteroidSize s) :CircleShape(r),
 		size(s) {
@@ -72,6 +74,10 @@ Vector2f Asteroid::velocityAfterCollision(shared_ptr<Asteroid> a) {
 	float m1 = mass, m2 = a->getMass(), v1x = velocity.x, v1y = velocity.y, v2x = a->getVelocity().x, v2y = a->getVelocity().y;
 	float secondOrderCoefficient = m1*(m1 + m2), firstOrderCoefficientX = -2 * m1*(m1*v1x + m2*v2x), firstOrderCoefficientY=-2 * m1*(m1*v1y + m2*v2y), constantX = m1*m1*v1x*v1x + 2 * m1*m2*v1x*v2x - m1*m2*v1x*v1x, constantY = m1*m1*v1y*v1y + 2 * m1*m2*v1y*v2y - m1*m2*v1y*v1y;
 	float determinantX = firstOrderCoefficientX*firstOrderCoefficientX - 4 * secondOrderCoefficient*constantX, determinantY = firstOrderCoefficientY*firstOrderCoefficientY - 4 * secondOrderCoefficient*constantY;
+	if (determinantX <= 0)
+		determinantX = 0;
+	if (determinantY <= 0)
+		determinantY = 0;
 	float newV1X1 = (-firstOrderCoefficientX + sqrt(determinantX)) / 2 / secondOrderCoefficient, newV1X2 = (-firstOrderCoefficientX - sqrt(determinantX)) / 2 / secondOrderCoefficient;
 	float newV1Y1 = (-firstOrderCoefficientY + sqrt(determinantY)) / 2 / secondOrderCoefficient, newV1Y2 = (-firstOrderCoefficientY - sqrt(determinantY)) / 2 / secondOrderCoefficient;
 	float solutionX, solutionY;
@@ -88,13 +94,16 @@ Vector2f Asteroid::velocityAfterCollision(shared_ptr<Asteroid> a) {
 
 Vector2f Asteroid::newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids) {
 	Vector2f resultantVelocity(0,0);
+	set<shared_ptr<Asteroid>> asteroidsToBeCollided;
 	bool collided = false;
 	for (shared_ptr<Asteroid> a : collidibleAsteroids) {
-		if (this!=a.get()&&collideWithAnotherAsteroid(a)) {
+		if (this!=a.get()&&previouslyCollidedAsteroids.find(a)==previouslyCollidedAsteroids.end()&&collideWithAnotherAsteroid(a)) {
+			asteroidsToBeCollided.insert(a);
 			resultantVelocity += velocityAfterCollision(a);
 			collided = true;
 		}
 	}
+	previouslyCollidedAsteroids = asteroidsToBeCollided;
 	if (collided)
 		return resultantVelocity;
 	else
