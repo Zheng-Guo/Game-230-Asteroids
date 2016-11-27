@@ -31,7 +31,7 @@ public:
 	void turnRight() { if (!spaceship->getIsHit()) spaceship->turnRight(); }
 	void setLives(int l) { lives = l; }
 	int getLives() { return lives; }
-	void loseLife() { lives--; spaceship->setIsHit(true); isInvincible = true; }
+	void loseLife() { lives--; spaceship->setIsHit(true); spaceship->setVelocity(Vector2f(0,0)); isInvincible = true; }
 	void setScore(int s) { score = s; }
 	int getScore() { return score; }
 	void act();
@@ -57,10 +57,10 @@ void Player::prepareForBattle() {
 		isVisible = true;
 	else if (invincibilityCounter < Spaceship_Invinciblility_Duration&&invincibilityCounter%Refresh_Frequency < Refresh_Frequency)
 		isVisible = false;
-	else if(invincibilityCounter>=Spaceship_Invinciblility_Duration){
+	invincibilityCounter++;
+	if(invincibilityCounter>=Spaceship_Invinciblility_Duration){
 		isVisible = true;
 		invincibilityCounter = 0;
 		isInvincible = false;
 	}
-	invincibilityCounter++;
 }

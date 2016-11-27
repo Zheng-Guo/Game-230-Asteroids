@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include "GameConstants.h"
+#include "MainMenu.h"
 #include "Level.h"
 
 using namespace sf;
@@ -11,6 +12,7 @@ using namespace std;
 class Asteroids {
 private:
 	RenderWindow window;
+	MainMenu mainMenu;
 	Level level;
 	Clock clock;
 	Time time1, time2, time3;
@@ -49,11 +51,17 @@ void Asteroids::startGame() {
 			level.processAction();
 		}
 		window.clear();
-		level.render(window);
-		for (int i = 0; i < 8; i++) {
+		if (mainMenu.getAtMainMenu()) {
+			mainMenu.render(window);
+		}
+		else {
+			level.render(window);
+		}
+		
+/*		for (int i = 0; i < 8; i++) {
 			window.draw(horizontalVertices[i], 2, Lines);
 			window.draw(verticalVertices[i], 2, Lines);
-		}
+		}*/
 		window.display();
 	}
 }

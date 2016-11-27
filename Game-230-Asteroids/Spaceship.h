@@ -43,7 +43,8 @@ public:
 		explosionTexture.loadFromFile(Spaceship_Explosion_Texture);
 		explosion.setTexture(&explosionTexture);
 		explosion.setTextureRect(IntRect(0, 0, 256, 256));
-		explosion.setOrigin(Spaceship_Size, Spaceship_Size);
+		explosion.setOrigin(explosion.getSize().x/2, explosion.getSize().y / 2);
+		explosion.setPosition(getPosition());
 	}
 
 	void setPosition(float x,float y);
@@ -51,6 +52,7 @@ public:
 	void setSpaceshipFlameSize(float x, float y);
 	void setSpaceshipFlamePosition(float x, float y);
 	void setSpaceshipFlameTexture(const char textureFile[]);
+	void setSpaceshipRotation(float r) { direction = r; setRotation(r), flame.setRotation(r); }
 	RectangleShape getEngineFlame() { return flame; }
 	void setThrust(float f) { thrust = f; }
 	float getThrust() { return thrust; }
