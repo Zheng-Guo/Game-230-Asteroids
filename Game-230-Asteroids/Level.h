@@ -71,7 +71,7 @@ public:
 		score.setPosition(Score_X_Position, Score_Y_Position);
 	}
 	void setDisplayWindow(FloatRect w) { background.setDisplayWindow(w); }
-	void processEvent(Event event);
+	Interface processEvent(Event event);
 	void processAction();
 	void render(RenderWindow &window);
 };
@@ -282,7 +282,7 @@ bool Level::spaceshipCollision() {
 	return false;
 }
 
-void Level::processEvent(Event event) {
+Interface Level::processEvent(Event event) {
 	playerForward=false,playerBackward=false,playerLeft = false, playerRight = false;
 	if (Keyboard::isKeyPressed(Keyboard::Up))
 		playerForward = true;
@@ -292,6 +292,9 @@ void Level::processEvent(Event event) {
 		playerLeft = true;
 	if (Keyboard::isKeyPressed(Keyboard::Right))
 		playerRight = true;
+	if (Keyboard::isKeyPressed(Keyboard::Escape))
+		return Interface::MenuInterface;
+	return Interface::LevelInterface;
 }
 
 void Level::processAction() {

@@ -16,9 +16,11 @@ private:
 	Level level;
 	Clock clock;
 	Time time1, time2, time3;
+	Interface currentInterface;
 	Vertex horizontalVertices[8][2], verticalVertices[8][2];
 public:
-	Asteroids() : window(VideoMode(Window_Width, Window_Height), "Asteroids", Style::Close | Style::Titlebar) {
+	Asteroids() : window(VideoMode(Window_Width, Window_Height), "Asteroids", Style::Close | Style::Titlebar),
+	currentInterface(Interface::MenuInterface){
 		window.setPosition(Vector2i(400, 0));
 		//View v(FloatRect(-400, -400, 1800, 1800));
 		//window.setView(v);
@@ -41,27 +43,25 @@ void Asteroids::startGame() {
 		while (window.pollEvent(event)) {
 			if (event.type == Event::Closed)
 				window.close();
-			level.processEvent(event);
+			switch (currentInterface) {
+			case Interface::MenuInterface:currentInterface = mainMenu.processEvent(event); if (currentInterface == Interface::Exit) window.close(); break;
+			case Interface::LevelInterface:currentInterface = level.processEvent(event); if (currentInterface == Interface::MenuInterface) mainMenu.resetMainMenu(); break;
+			}		
 		}
 		time2 = clock.getElapsedTime();
 		time3 = time2 - time1;
-		cout << time3.asSeconds() << endl;
 		if (time3.asSeconds() >= Refresh_Interval) {
 			time1 = time2;
-			level.processAction();
+			switch (currentInterface) {
+			case Interface::MenuInterface: currentInterface=mainMenu.processAction(); break;
+			case Interface::LevelInterface:level.processAction(); break;
+			}
 		}
 		window.clear();
-		if (mainMenu.getAtMainMenu()) {
-			mainMenu.render(window);
+		switch (currentInterface) {
+		case Interface::MenuInterface: mainMenu.render(window); break;
+		case Interface::LevelInterface:level.render(window); break;
 		}
-		else {
-			level.render(window);
-		}
-		
-/*		for (int i = 0; i < 8; i++) {
-			window.draw(horizontalVertices[i], 2, Lines);
-			window.draw(verticalVertices[i], 2, Lines);
-		}*/
 		window.display();
 	}
 }
