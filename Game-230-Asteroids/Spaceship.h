@@ -81,6 +81,7 @@ public:
 	RectangleShape getExplosion() { return explosion; }
 	vector<shared_ptr<GunShot>> getGunShots() { return gunShots; }
 	void fire();
+	void recycleGunShots(FloatRect r);
 	void reset();
 };
 
@@ -194,6 +195,13 @@ void Spaceship::fire() {
 		g->setDirection(direction);
 		gunShots.erase(gunShots.begin());
 		gunShots.push_back(g);
+	}
+}
+
+void Spaceship::recycleGunShots(FloatRect r) {
+	for (shared_ptr<GunShot> g : gunShots) {
+		if (g->getFired() && !r.intersects(g->getGlobalBounds()))
+			g->setFired(false);
 	}
 }
 

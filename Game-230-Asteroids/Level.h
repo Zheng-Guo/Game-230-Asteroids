@@ -42,6 +42,7 @@ private:
 	void spawnAsteroids();
 	void rebucket();
 	set<shared_ptr<Asteroid>> getCollidibleAsteroids();
+	set<shared_ptr<Asteroid>> getTargetAsteroids(shared_ptr<GunShot> g);
 	bool spaceshipCollision();
 public:
 	Level() :spawnBound(Spawn_Bound_Left, Spawn_Bound_Top, Spawn_Bound_Width, Spawn_Bound_Height),
@@ -277,6 +278,47 @@ set<shared_ptr<Asteroid>> Level::getCollidibleAsteroids() {
 	return collidibleAsteroids;
 }
 
+set<shared_ptr<Asteroid>> Level::getTargetAsteroids(shared_ptr<GunShot> g) {
+	set<shared_ptr<Asteroid>> targets;
+	//FloatRect visibleArea(0,0,Window_Width,Window_Height);
+	int i = (g->getPosition().x - Spawn_Bound_Left) / Bucket_Grid_Width, j = (g->getPosition().y - Spawn_Bound_Top) / Bucket_Grid_Height;
+	targets.insert(bucketGrid[j][i].begin(), bucketGrid[j][i].end());
+	bool overlapTop = false, overlapBottom = false, overlapLeft = false, overlapRight = false;
+	if (i > 1 && g->getPosition().x - g->getRadius() < (i - 1)*Bucket_Grid_Width)
+		overlapLeft = true;
+	if (i < Bucket_Grid_Column_Number - 2 && g->getPosition().x + g->getRadius() > i*Bucket_Grid_Width)
+		overlapRight = true;
+	if (j > 1 && g->getPosition().y - g->getRadius() < (j - 1)*Bucket_Grid_Height)
+		overlapTop = true;
+	if (j < Bucket_Grid_Row_Number - 2 && g->getPosition().y + g->getRadius() > j*Bucket_Grid_Height)
+		overlapBottom = true;
+	if (overlapTop) {
+		targets.insert(bucketGrid[j - 1][i].begin(), bucketGrid[j - 1][i].end());
+	}
+	if (overlapBottom) {
+		targets.insert(bucketGrid[j + 1][i].begin(), bucketGrid[j + 1][i].end());
+	}
+	if (overlapLeft) {
+		targets.insert(bucketGrid[j][i - 1].begin(), bucketGrid[j][i - 1].end());
+	}
+	if (overlapRight) {
+		targets.insert(bucketGrid[j][i + 1].begin(), bucketGrid[j][i + 1].end());
+	}
+	if (overlapTop&&overlapLeft) {
+		targets.insert(bucketGrid[j - 1][i - 1].begin(), bucketGrid[j - 1][i - 1].end());
+	}
+	if (overlapTop&&overlapRight) {
+		targets.insert(bucketGrid[j - 1][i + 1].begin(), bucketGrid[j - 1][i + 1].end());
+	}
+	if (overlapBottom&&overlapLeft) {
+		targets.insert(bucketGrid[j + 1][i - 1].begin(), bucketGrid[j + 1][i - 1].end());
+	}
+	if (overlapBottom&&overlapRight) {
+		targets.insert(bucketGrid[j + 1][i + 1].begin(), bucketGrid[j + 1][i + 1].end());
+	}
+	return targets;
+}
+
 bool Level::spaceshipCollision() {
 	set<shared_ptr<Asteroid>> collidibleAsteroids = getCollidibleAsteroids();
 	shared_ptr<Spaceship> spaceship = player.getSpaceship();
@@ -304,7 +346,7 @@ Interface Level::processEvent(Event event) {
 		//resetLevel();
 		return Interface::MenuInterface;
 	}
-	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame)
+	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame && !player.isSpaceshipHit()&&!player.getIsInvincible())
 		fireGun = true;
 	return Interface::LevelInterface;
 }
@@ -320,6 +362,18 @@ Interface Level::processAction() {
 		player.turnRight();
 	if (fireGun)
 		player.fireFun();
+	player.getSpaceship()->recycleGunShots(spawnBound);
+	FloatRect visibleArea(0, 0, Window_Width, Window_Height);
+	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots()) {
+		if (visibleArea.intersects(g->getGlobalBounds())) {
+			shared_ptr<Asteroid> target = g->target(getTargetAsteroids(g));
+			if (target != nullptr) {
+				g->setFired(false);
+				cout << target->getPosition().x << "," << target->getPosition().y << endl;
+			}
+				
+		}
+	}
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 		g->move();
 	if (!player.isSpaceshipHit()) {
