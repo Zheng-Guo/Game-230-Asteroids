@@ -18,12 +18,26 @@ private:
 	Vector2f velocity;
 	float angularVelocity;
 	set<shared_ptr<Asteroid>> previouslyCollidedAsteroids;
+	static Texture explosionTexture;
+	RectangleShape explosion;
+	int explosionCounter;
+	int explosionTextureX, explosionTextureY;
+	int explosionSpeed;
+	bool isHit;
+	bool isDestroyed;
 	bool collideWithAnotherAsteroid(shared_ptr<Asteroid> a);
 	Vector2f velocityAfterCollision(shared_ptr<Asteroid> a);
 	Vector2f previousPosition;
 public:
 	Asteroid(float r, AsteroidSize s) :CircleShape(r),
-		size(s) {
+		size(s),
+		explosion(Vector2f(r * 3, r * 3)),
+		explosionCounter(0),
+		explosionTextureX(1),
+		explosionTextureY(0),
+		explosionSpeed(Explosion_Speed),
+		isHit(false),
+		isDestroyed(false){
 		srand(time(NULL));
 		setOrigin(r, r);
 		angularVelocity=rand() % (Asteroid_Maximum_Angular_Velocity - Asteroid_Minimum_Angular_Velocity) + Asteroid_Minimum_Angular_Velocity;
@@ -33,44 +47,52 @@ public:
 		case AsteroidSize::Medium:setTexture(&textures[1]); mass = Asteroid_Mass_Medium; break;
 		case AsteroidSize::Large:setTexture(&textures[2]); mass = Asteroid_Mass_Large; break;
 		}
+		explosion.setTexture(&explosionTexture);
+		explosion.setTextureRect(IntRect(0, 0, Asteroid_Explosion_Frame_Width, Asteroid_Explosion_Frame_Height));
+		explosion.setOrigin(explosion.getSize().x / 2, explosion.getSize().y / 2);
+		explosion.setPosition(getPosition());
 	}
+	void setPosition(float x, float y) { CircleShape::setPosition(x, y); explosion.setPosition(x, y); }
 	void setVelocity(Vector2f v) { velocity = v; }
 	Vector2f getVelocity() { return velocity; }
+	void setIsHit(bool t) { isHit = t; }
+	bool getIsHit() { return isHit; }
+	void setIsDestroyed(bool t) { isDestroyed = t; }
+	bool getIsDestroyed() { return isDestroyed; }
 	int getMass() { return mass; }
-	void move() { CircleShape::move(velocity); rotate(angularVelocity); }
-	void shiftPosition(Vector2f v) { CircleShape::move(v); }
+	void move() { CircleShape::move(velocity); rotate(angularVelocity); explosion.move(velocity); }
+	void shiftPosition(Vector2f v) { CircleShape::move(v); explosion.move(v); }
 	Vector2f newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids);
 	vector<Asteroid> damage(int d);
+	RectangleShape getExplosion() { return explosion; }
+	void explode();
 	static void loadTextures();
 };
 
 Texture Asteroid::textures[3];
+Texture Asteroid::explosionTexture;
 
 void Asteroid::loadTextures() {
 	textures[0].loadFromFile(Asteroid_Small_Texture);
 	textures[1].loadFromFile(Asteroid_Medium_Texture);
 	textures[2].loadFromFile(Asteroid_Large_Texture);
+	explosionTexture.loadFromFile(Asteroid_Explosion_Texture);
 }
 
 bool Asteroid::collideWithAnotherAsteroid(shared_ptr<Asteroid> a) {
-/*	if (a->getPosition().x<getPosition().x&&a->getVelocity().x <= velocity.x ||
-		a->getPosition().x>getPosition().x&&a->getVelocity().x >= velocity.x ||
-		a->getPosition().y<getPosition().y&&a->getVelocity().y <= velocity.y ||
-		a->getPosition().y>getPosition().y&&a->getVelocity().y >= velocity.y)
-		return false;
-	else {*/
+	if (!a->getIsHit()) {
 		Vector2f offset = a->getPosition() - getPosition();
 		float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
 		if (distance > getRadius() + a->getRadius())
 			return false;
 		else
 			return true;
-//	}
+	}
+	else
+		return false;
 }
 
 Vector2f Asteroid::velocityAfterCollision(shared_ptr<Asteroid> a) {
-	//float netMomentumX = mass*velocity.x + a->getMass()*a->getVelocity().x, netMomentumY = mass*velocity.y + a->getMass()*a->getVelocity().y;
-	//float netKineticEnergyDoubleX=mass*velocity.x*velocity.x+ a->getMass()*a->getVelocity().x*a->getVelocity().x,netKineticEnergyDoubleY= mass*velocity.y*velocity.y + a->getMass()*a->getVelocity().y*a->getVelocity().y;
 	float m1 = mass, m2 = a->getMass(), v1x = velocity.x, v1y = velocity.y, v2x = a->getVelocity().x, v2y = a->getVelocity().y;
 	float secondOrderCoefficient = m1*(m1 + m2), firstOrderCoefficientX = -2 * m1*(m1*v1x + m2*v2x), firstOrderCoefficientY=-2 * m1*(m1*v1y + m2*v2y), constantX = m1*m1*v1x*v1x + 2 * m1*m2*v1x*v2x - m1*m2*v1x*v1x, constantY = m1*m1*v1y*v1y + 2 * m1*m2*v1y*v2y - m1*m2*v1y*v1y;
 	float determinantX = firstOrderCoefficientX*firstOrderCoefficientX - 4 * secondOrderCoefficient*constantX, determinantY = firstOrderCoefficientY*firstOrderCoefficientY - 4 * secondOrderCoefficient*constantY;
@@ -141,4 +163,26 @@ vector<Asteroid> Asteroid::damage(int d) {
 		}
 	}	
 	return remanents;
+}
+
+void Asteroid::explode() {
+//	if (isHit) {
+		if (explosionCounter < explosionSpeed) {
+			explosionCounter++;
+		}
+		else {
+			explosionCounter = 0;
+			explosion.setTextureRect(IntRect(explosionTextureX * Asteroid_Explosion_Frame_Width, explosionTextureY * Asteroid_Explosion_Frame_Height, Asteroid_Explosion_Frame_Width, Asteroid_Explosion_Frame_Height));
+			++explosionTextureX;
+			if (explosionTextureX >= Asteroid_Explosion_Texture_Column_Number) {
+				++explosionTextureY;
+				explosionTextureX = 0;
+			}
+			if (explosionTextureY >= Asteroid_Explosion_Texture_Row_Number) {
+				explosionTextureY = 0;
+				isHit = false;
+				isDestroyed = true;
+			}
+		}
+//	}
 }

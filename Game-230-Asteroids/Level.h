@@ -106,7 +106,7 @@ void Level::spawnAsteroid() {
 		else
 			++i;
 	}
-	if (spawnedAsteroids.size() < Minimum_Spawn_Asteroid_Number) {
+	if (spawnedAsteroids.size() < Minimum_Spawn_Asteroid_Number&&asteroids.size()>0) {
 		shared_ptr<Asteroid> nextAsteroid = asteroids[0];
 		float x, y;
 		bool suitableSpawnPoint;
@@ -280,7 +280,6 @@ set<shared_ptr<Asteroid>> Level::getCollidibleAsteroids() {
 
 set<shared_ptr<Asteroid>> Level::getTargetAsteroids(shared_ptr<GunShot> g) {
 	set<shared_ptr<Asteroid>> targets;
-	//FloatRect visibleArea(0,0,Window_Width,Window_Height);
 	int i = (g->getPosition().x - Spawn_Bound_Left) / Bucket_Grid_Width, j = (g->getPosition().y - Spawn_Bound_Top) / Bucket_Grid_Height;
 	targets.insert(bucketGrid[j][i].begin(), bucketGrid[j][i].end());
 	bool overlapTop = false, overlapBottom = false, overlapLeft = false, overlapRight = false;
@@ -323,10 +322,12 @@ bool Level::spaceshipCollision() {
 	set<shared_ptr<Asteroid>> collidibleAsteroids = getCollidibleAsteroids();
 	shared_ptr<Spaceship> spaceship = player.getSpaceship();
 	for (shared_ptr<Asteroid> a : collidibleAsteroids) {
-		Vector2f offset = a->getPosition() - spaceship->getPosition();
-		float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
-		if (distance < a->getRadius() + spaceship->getRadius())
-			return true;
+		if (!a->getIsHit()) {
+			Vector2f offset = a->getPosition() - spaceship->getPosition();
+			float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+			if (distance < a->getRadius() + spaceship->getRadius())
+				return true;
+		}
 	}
 	return false;
 }
@@ -362,6 +363,18 @@ Interface Level::processAction() {
 		player.turnRight();
 	if (fireGun)
 		player.fireFun();
+	for (shared_ptr<Asteroid> a : spawnedAsteroids) {
+		if (a->getIsHit())
+			a->explode();
+	}
+	int i = 0;
+	while (i < spawnedAsteroids.size()) {
+		if (spawnedAsteroids[i]->getIsDestroyed()) {
+			spawnedAsteroids.erase(spawnedAsteroids.begin() + i);
+		}
+		else
+			++i;
+	}
 	player.getSpaceship()->recycleGunShots(spawnBound);
 	FloatRect visibleArea(0, 0, Window_Width, Window_Height);
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots()) {
@@ -369,13 +382,14 @@ Interface Level::processAction() {
 			shared_ptr<Asteroid> target = g->target(getTargetAsteroids(g));
 			if (target != nullptr) {
 				g->setFired(false);
-				cout << target->getPosition().x << "," << target->getPosition().y << endl;
+				g->hitTarget(target);
 			}
 				
 		}
 	}
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
-		g->move();
+		if(g->getFired())
+			g->move();
 	if (!player.isSpaceshipHit()) {
 		player.act();
 		if (!background.isWithinInnerBound(*player.getSpaceship())) {
@@ -432,7 +446,7 @@ Interface Level::processAction() {
 	}*/
 	map<shared_ptr<Asteroid>,Vector2f> newVelocities;
 	for (int i = 0; i < spawnedAsteroids.size()&&i<bucketAllocations.size();i++) {
-		if (bucketAllocations.find(spawnedAsteroids[i]) != bucketAllocations.end()) {
+		if (!spawnedAsteroids[i]->getIsHit()&&bucketAllocations.find(spawnedAsteroids[i]) != bucketAllocations.end()) {
 			vector<pair<int, int>> bucketAllocation = bucketAllocations[spawnedAsteroids[i]];
 			set<shared_ptr<Asteroid>> collidibleAsteroids;
 			for (pair<int, int> p : bucketAllocation) {
@@ -449,9 +463,12 @@ Interface Level::processAction() {
 		}
 	}
 	for (auto a:newVelocities)
-		a.first->setVelocity(a.second);
-	for (shared_ptr<Asteroid> a : spawnedAsteroids)
-		a->move();
+		if(!a.first->getIsHit())
+			a.first->setVelocity(a.second);
+	for (shared_ptr<Asteroid> a : spawnedAsteroids) {
+		if(!a->getIsHit())
+			a->move();
+	}	
 	spawnAsteroids();
 	return Interface::LevelInterface;
 }
@@ -463,8 +480,13 @@ void Level::render(RenderWindow &window) {
 	vector<shared_ptr<BackgroundPanel>> visiblePanels = background.getVisiblePanels();
 	for (shared_ptr<BackgroundPanel> p : visiblePanels)
 		window.draw(*p);
-	for (shared_ptr<Asteroid> a : spawnedAsteroids)
-		window.draw(*a);
+	for (shared_ptr<Asteroid> a : spawnedAsteroids) {
+		if (a->getIsHit()&&!a->getIsDestroyed())
+			window.draw(a->getExplosion());
+		else
+			window.draw(*a);
+	}
+		
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 		if (g->getFired())
 			window.draw(*g);

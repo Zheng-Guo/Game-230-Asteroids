@@ -32,7 +32,7 @@ public:
 	void turnRight() { if (!spaceship->getIsHit()) spaceship->turnRight(); }
 	void setLives(int l) { lives = l; }
 	int getLives() { return lives; }
-	void loseLife() { lives--; spaceship->setIsHit(true); spaceship->setVelocity(Vector2f(0,0)); isInvincible = true; }
+	void loseLife();
 	void setScore(int s) { score = s; }
 	int getScore() { return score; }
 	void act();
@@ -47,6 +47,15 @@ public:
 	void prepareForBattle();
 	void fireFun() { spaceship->fire(); }
 };
+
+void Player::loseLife() {
+	lives--; 
+	spaceship->setIsHit(true); 
+	spaceship->setVelocity(Vector2f(0, 0)); 
+	isInvincible = true;
+	for (shared_ptr<GunShot> g : spaceship->getGunShots())
+		g->setFired(false);
+}
 
 void Player::act() {
 	spaceship->move();

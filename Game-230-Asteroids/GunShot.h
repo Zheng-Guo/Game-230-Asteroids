@@ -29,6 +29,7 @@ public:
 	void move() { CircleShape::move(velocity); }
 	void shift(Vector2f v) { CircleShape::move(v); }
 	bool withinVisibleArea(FloatRect r) { return r.intersects(getGlobalBounds()); }
+	int hitTarget(shared_ptr<Asteroid>a);
 	shared_ptr<Asteroid> target(set<shared_ptr<Asteroid>> allTargets);
 };
 
@@ -41,10 +42,12 @@ void GunShot::loadTexture() {
 shared_ptr<Asteroid> GunShot::target(set<shared_ptr<Asteroid>> allTargets) {
 	vector<shared_ptr<Asteroid>> targets;
 	for (shared_ptr<Asteroid> a : allTargets) {
-		Vector2f offset = a->getPosition() - getPosition();
-		float distance= sqrt(offset.x*offset.x + offset.y*offset.y);
-		if (distance < a->getRadius() + getRadius())
-			targets.push_back(a);
+		if (!a->getIsHit()) {
+			Vector2f offset = a->getPosition() - getPosition();
+			float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+			if (distance < a->getRadius() + getRadius())
+				targets.push_back(a);
+		}
 	}
 	if (targets.size() == 0)
 		return nullptr;
@@ -60,4 +63,9 @@ shared_ptr<Asteroid> GunShot::target(set<shared_ptr<Asteroid>> allTargets) {
 		sort(targets.begin(), targets.end(), predicate);
 		return targets[0];
 	}	
+}
+
+int GunShot::hitTarget(shared_ptr<Asteroid> a) {
+	a->setIsHit(true);
+	return 0;
 }
