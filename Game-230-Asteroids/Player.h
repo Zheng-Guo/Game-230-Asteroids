@@ -45,6 +45,7 @@ public:
 	bool isNextLifeUsed() { return lives>0&&!spaceship->getIsHit() && isInvincible; }
 	bool isGameOver() { return lives <= 0; }
 	void prepareForBattle();
+	void fireFun() { spaceship->fire(); }
 };
 
 void Player::act() {

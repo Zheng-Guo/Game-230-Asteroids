@@ -157,6 +157,7 @@
     <ClInclude Include="Background.h" />
     <ClInclude Include="GameConstants.h" />
     <ClInclude Include="GameOver.h" />
+    <ClInclude Include="GunShot.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Matrix.h" />

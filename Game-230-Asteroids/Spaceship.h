@@ -5,6 +5,7 @@
 #include <SFML\Graphics.hpp>
 #include "GameConstants.h"
 #include "Matrix.h"
+#include "GunShot.h"
 
 using namespace sf;
 using namespace std;
@@ -24,6 +25,9 @@ private:
 	float thrust, fullSpeed;
 	Vector2f velocity;
 	bool isHit;
+	bool fireGun;
+	vector<shared_ptr<GunShot>> gunShots;
+	int firingCounter;
 public:
 	Spaceship(float size,float direction,float thrust,float fullSpeed,float angularSpeed):CircleShape(size),
 	direction(direction),
@@ -35,7 +39,9 @@ public:
 	explosionTextureX(1),
 	explosionTextureY(0),
 	explosionSpeed(Explosion_Speed),
-	isHit(false){
+	isHit(false),
+	fireGun(false),
+	firingCounter(0){
 		setOrigin(size, size);
 		rotate(direction);
 		flame.rotate(direction);
@@ -44,6 +50,11 @@ public:
 		explosion.setTextureRect(IntRect(0, 0, 256, 256));
 		explosion.setOrigin(explosion.getSize().x/2, explosion.getSize().y / 2);
 		explosion.setPosition(getPosition());
+		GunShot::loadTexture();
+		for (int i = 0; i < Gun_Shot_Number; ++i) {
+			shared_ptr<GunShot> gunshot = make_shared<GunShot>(Gun_Shot_Size,Gun_Shot_Speed);
+			gunShots.push_back(gunshot);
+		}
 	}
 
 	void setPosition(float x,float y);
@@ -68,6 +79,8 @@ public:
 	void move();
 	void explode();
 	RectangleShape getExplosion() { return explosion; }
+	vector<shared_ptr<GunShot>> getGunShots() { return gunShots; }
+	void fire();
 	void reset();
 };
 
@@ -166,6 +179,21 @@ void Spaceship::explode() {
 				isHit = false;
 			}
 		}
+	}
+}
+
+void Spaceship::fire() {
+	if (firingCounter < Gun_Shot_Interval) {
+		++firingCounter;
+	}
+	else {
+		firingCounter = 0;
+		shared_ptr<GunShot> g = gunShots[0];
+		g->setFired(true);
+		g->setPosition(getPosition());
+		g->setDirection(direction);
+		gunShots.erase(gunShots.begin());
+		gunShots.push_back(g);
 	}
 }
 

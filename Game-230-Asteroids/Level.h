@@ -36,6 +36,7 @@ private:
 	int startingCounter;
 	View view;
 	bool playerForward,playerBackward,playerLeft, playerRight;
+	bool fireGun;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
@@ -290,6 +291,7 @@ bool Level::spaceshipCollision() {
 
 Interface Level::processEvent(Event event) {
 	playerForward=false,playerBackward=false,playerLeft = false, playerRight = false;
+	fireGun = false;
 	if (Keyboard::isKeyPressed(Keyboard::Up)&&!startingGame)
 		playerForward = true;
 	if (Keyboard::isKeyPressed(Keyboard::Down) && !startingGame)
@@ -302,6 +304,8 @@ Interface Level::processEvent(Event event) {
 		//resetLevel();
 		return Interface::MenuInterface;
 	}
+	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame)
+		fireGun = true;
 	return Interface::LevelInterface;
 }
 
@@ -314,6 +318,10 @@ Interface Level::processAction() {
 		player.turnLeft();
 	if (playerRight)
 		player.turnRight();
+	if (fireGun)
+		player.fireFun();
+	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
+		g->move();
 	if (!player.isSpaceshipHit()) {
 		player.act();
 		if (!background.isWithinInnerBound(*player.getSpaceship())) {
@@ -322,6 +330,8 @@ Interface Level::processAction() {
 			background.rotatePanels(player.getSpaceship()->getPosition());
 			for (shared_ptr<Asteroid> a : spawnedAsteroids)
 				a->shiftPosition(shift);
+			for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
+				g->shift(shift);
 		}
 	}
 	rebucket();
@@ -401,6 +411,9 @@ void Level::render(RenderWindow &window) {
 		window.draw(*p);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		window.draw(*a);
+	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
+		if (g->getFired())
+			window.draw(*g);
 	if (!player.isGameOver()&&!player.isSpaceshipHit()) {
 		if (player.isSpaceshipVisible()) {
 			if (playerForward)
@@ -411,8 +424,10 @@ void Level::render(RenderWindow &window) {
 	if (player.isSpaceshipHit()) {
 		window.draw(player.getSpaceship()->getExplosion());
 	}
-	window.draw(lives);
-	window.draw(score);
+	if (!startingGame) {
+		window.draw(lives);
+		window.draw(score);
+	}
 }
 
 void Level::resetLevel() {
