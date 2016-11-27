@@ -317,7 +317,10 @@ void Level::processAction() {
 	if (player.isSpaceshipHit()) {
 		player.explode();
 	}
-	else if (spaceshipCollision()) {
+	else if (player.isNextLifeUsed()) {
+		player.prepareForBattle();
+	}
+	else if (!player.getIsInvincible()&&spaceshipCollision()) {
 		player.loseLife();
 		ostringstream ss;
 		ss << "Life: " << player.getLives();
@@ -370,9 +373,11 @@ void Level::render(RenderWindow &window) {
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		window.draw(*a);
 	if (!player.isSpaceshipHit()) {
-		if (playerForward)
-			window.draw(player.getSpaceship()->getEngineFlame());
-		window.draw(*player.getSpaceship());
+		if (player.isSpaceshipVisible()) {
+			if (playerForward)
+				window.draw(player.getSpaceship()->getEngineFlame());
+			window.draw(*player.getSpaceship());
+		}		
 	}
 	if (player.isSpaceshipHit()) {
 		window.draw(player.getSpaceship()->getExplosion());

@@ -31,6 +31,7 @@ const float Spaceship_Flame_Height = 20;
 const char Spaceship_Texture[] = "textures/VF31F.png";
 const char Spaceship_Engine_Flame_Texture[] = "textures/VF31F Engine Flame.png";
 const char Spaceship_Explosion_Texture[] = "textures/spaceship_explosion.png";
+const int Spaceship_Invinciblility_Duration = Refresh_Frequency * 3;
 const int Explosion_Texture_Row_Number = 6;
 const int Explosion_Texture_Column_Number = 8;
 const int Explosion_Speed = Refresh_Frequency / 25;

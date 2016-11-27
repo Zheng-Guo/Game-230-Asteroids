@@ -23,20 +23,20 @@ private:
 	float angularSpeed;
 	float thrust, fullSpeed;
 	Vector2f velocity;
-	bool isHit,spaceshipExploded;
+	bool isHit,isInvincible;
 public:
 	Spaceship(float size,float direction,float thrust,float fullSpeed,float angularSpeed):CircleShape(size),
 	direction(direction),
 	thrust(thrust),
 	fullSpeed(fullSpeed),
 	angularSpeed(angularSpeed),
-	explosion(Vector2f(Spaceship_Size*2,Spaceship_Size*2)),
+	explosion(Vector2f(Spaceship_Size*4,Spaceship_Size*4)),
 	explosionCounter(0),
 	explosionTextureX(1),
 	explosionTextureY(0),
 	explosionSpeed(Explosion_Speed),
 	isHit(false),
-	spaceshipExploded(false){
+	isInvincible(false){
 		setOrigin(size, size);
 		rotate(direction);
 		flame.rotate(direction);
@@ -60,6 +60,8 @@ public:
 	Vector2f getVelocity() { return velocity; }
 	void setIsHit(bool t) { isHit = t; }
 	bool getIsHit() { return isHit; }
+	void setIsInvincible(bool i) { isInvincible = i; }
+	bool getIsInvincible() { return isInvincible; }
 	void moveForward();
 	//void moveBackward();
 	void turnLeft();
@@ -67,6 +69,7 @@ public:
 	void move();
 	void explode();
 	RectangleShape getExplosion() { return explosion; }
+	//void nextLife();
 };
 
 void Spaceship::setPosition(float x, float y) {
@@ -147,7 +150,7 @@ void Spaceship::move() {
 }
 
 void Spaceship::explode() {
-	if (!spaceshipExploded) {
+	if (isHit) {
 		if (explosionCounter < explosionSpeed) {
 			explosionCounter++;
 		}
@@ -161,7 +164,7 @@ void Spaceship::explode() {
 			}
 			if (explosionTextureY >= Explosion_Texture_Row_Number) {
 				explosionTextureY = 0;
-				spaceshipExploded = true;
+				isHit = false;
 			}
 		}
 	}
