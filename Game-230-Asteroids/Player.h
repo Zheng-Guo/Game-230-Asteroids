@@ -25,6 +25,7 @@ public:
 	}
 	shared_ptr<Spaceship> getSpaceship() { return spaceship; }
 	void setSpaceshipPosition(float x, float y) { spaceship->setPosition(x, y); }
+	void setSpaceshipRotation(float r) { spaceship->setSpaceshipRotation(r); }
 	void moveForward() { if(!spaceship->getIsHit()) spaceship->moveForward(); }
 	//void moveBackward() { spaceship.moveBackward(); }
 	void turnLeft() { if (!spaceship->getIsHit()) spaceship->turnLeft(); }
@@ -39,6 +40,7 @@ public:
 	bool isSpaceshipHit() { return spaceship->getIsHit(); }
 	void setIsInvincible(bool i) { isInvincible = i; }
 	bool getIsInvincible() { return isInvincible; }
+	void reset() { isInvincible = false; invincibilityCounter = 0; spaceship->reset(); spaceship->setSpaceshipRotation(90); }
 	bool isSpaceshipVisible() { return isVisible; }
 	bool isNextLifeUsed() { return lives>0&&!spaceship->getIsHit() && isInvincible; }
 	void prepareForBattle();

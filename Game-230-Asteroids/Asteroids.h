@@ -12,6 +12,7 @@ using namespace std;
 class Asteroids {
 private:
 	RenderWindow window;
+	View initialView;
 	MainMenu mainMenu;
 	Level level;
 	Clock clock;
@@ -22,7 +23,8 @@ public:
 	Asteroids() : window(VideoMode(Window_Width, Window_Height), "Asteroids", Style::Close | Style::Titlebar),
 	currentInterface(Interface::MenuInterface){
 		window.setPosition(Vector2i(400, 0));
-		//View v(FloatRect(-400, -400, 1800, 1800));
+		initialView = window.getDefaultView();
+		//View v(FloatRect(450, 450, 100, 100));
 		//window.setView(v);
 		level.setDisplayWindow(FloatRect(0, 0, Window_Width, Window_Height));
 		srand(time(NULL));
@@ -44,8 +46,13 @@ void Asteroids::startGame() {
 			if (event.type == Event::Closed)
 				window.close();
 			switch (currentInterface) {
-			case Interface::MenuInterface:currentInterface = mainMenu.processEvent(event); if (currentInterface == Interface::Exit) window.close(); break;
-			case Interface::LevelInterface:currentInterface = level.processEvent(event); if (currentInterface == Interface::MenuInterface) mainMenu.resetMainMenu(); break;
+			case Interface::MenuInterface:currentInterface = mainMenu.processEvent(event); 
+				if (currentInterface == Interface::Exit) window.close(); 
+				if (currentInterface == Interface::LevelInterface) level.resetLevel(); 
+				break;
+			case Interface::LevelInterface:currentInterface = level.processEvent(event); 
+				if (currentInterface == Interface::MenuInterface) { mainMenu.resetMainMenu(); window.setView(initialView); } 
+				break;
 			}		
 		}
 		time2 = clock.getElapsedTime();

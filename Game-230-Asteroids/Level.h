@@ -26,13 +26,15 @@ private:
 	vector<shared_ptr<Asteroid>> spawnedAsteroids;
 	vector<shared_ptr<Asteroid>> bucketGrid[Bucket_Grid_Row_Number][Bucket_Grid_Column_Number];
 	map<shared_ptr<Asteroid>,vector<pair<int,int>>> bucketAllocations;
-	FloatRect bucketGridBounds[Bucket_Grid_Row_Number][Bucket_Grid_Column_Number];
 	int asteroidNumberIncrement;
 	int asteroidSpawningCounter;	
 	Font font;
 	Text lives;
 	Text score;
 	Player player;
+	bool startingGame;
+	int startingCounter;
+	View view;
 	bool playerForward,playerBackward,playerLeft, playerRight;
 	void initializeAsteroids();
 	void spawnAsteroid();
@@ -41,17 +43,15 @@ private:
 	set<shared_ptr<Asteroid>> getCollidibleAsteroids();
 	bool spaceshipCollision();
 public:
-	Level():spawnBound(Spawn_Bound_Left,Spawn_Bound_Top,Spawn_Bound_Width,Spawn_Bound_Height),
+	Level() :spawnBound(Spawn_Bound_Left, Spawn_Bound_Top, Spawn_Bound_Width, Spawn_Bound_Height),
 	asteroidNumberIncrement(0),
-	asteroidSpawningCounter(0){		
+	asteroidSpawningCounter(0),
+	startingGame(true),
+	startingCounter(0),
+	view(FloatRect(Level_Initial_View_X,Level_Initial_View_Y,Level_Initial_View_Width,Level_Initial_View_Height)) {
 		player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
 		player.setLives(3);
 		player.setScore(0);
-		for (int i = 0; i < Bucket_Grid_Row_Number; i++) {
-			for (int j = 0; j < Bucket_Grid_Column_Number; j++) {
-				bucketGridBounds[i][j] = FloatRect(j*Bucket_Grid_Width, i*Bucket_Grid_Height, Bucket_Grid_Width, Bucket_Grid_Height);
-			}
-		}
 		Asteroid::loadTextures();
 		initializeAsteroids();
 		font.loadFromFile("Tinos-Regular.ttf");
@@ -69,16 +69,19 @@ public:
 		score.setCharacterSize(Stat_Character_Size);
 		score.setFillColor(Color::Yellow);
 		score.setPosition(Score_X_Position, Score_Y_Position);
+		view.setRotation(90);
 	}
 	void setDisplayWindow(FloatRect w) { background.setDisplayWindow(w); }
 	Interface processEvent(Event event);
 	void processAction();
 	void render(RenderWindow &window);
+	void resetLevel();
 };
 
 void Level::initializeAsteroids() {
 	asteroids.clear();
 	spawnedAsteroids.clear();
+	bucketAllocations.clear();
 	for (int i = 0; i < Bucket_Grid_Row_Number; i++) {
 		for (int j = 0; j < Bucket_Grid_Column_Number; j++) {
 			bucketGrid[i][j].clear();
@@ -161,11 +164,13 @@ void Level::spawnAsteroid() {
 }
 
 void Level::spawnAsteroids() {
-	if (asteroidSpawningCounter < Refresh_Frequency / 2)
-		asteroidSpawningCounter++;
-	else {
-		asteroidSpawningCounter = 0;
-		spawnAsteroid();
+	if (!startingGame) {
+		if (asteroidSpawningCounter < Refresh_Frequency / 2)
+			asteroidSpawningCounter++;
+		else {
+			asteroidSpawningCounter = 0;
+			spawnAsteroid();
+		}
 	}
 }
 
@@ -284,16 +289,18 @@ bool Level::spaceshipCollision() {
 
 Interface Level::processEvent(Event event) {
 	playerForward=false,playerBackward=false,playerLeft = false, playerRight = false;
-	if (Keyboard::isKeyPressed(Keyboard::Up))
+	if (Keyboard::isKeyPressed(Keyboard::Up)&&!startingGame)
 		playerForward = true;
-	if (Keyboard::isKeyPressed(Keyboard::Down))
+	if (Keyboard::isKeyPressed(Keyboard::Down) && !startingGame)
 		playerBackward = true;
-	if (Keyboard::isKeyPressed(Keyboard::Left))
+	if (Keyboard::isKeyPressed(Keyboard::Left) && !startingGame)
 		playerLeft = true;
-	if (Keyboard::isKeyPressed(Keyboard::Right))
+	if (Keyboard::isKeyPressed(Keyboard::Right) && !startingGame)
 		playerRight = true;
-	if (Keyboard::isKeyPressed(Keyboard::Escape))
+	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
+		resetLevel();
 		return Interface::MenuInterface;
+	}
 	return Interface::LevelInterface;
 }
 
@@ -317,7 +324,18 @@ void Level::processAction() {
 		}
 	}
 	rebucket();
-	if (player.isSpaceshipHit()) {
+	if (startingGame) {
+		view.rotate(-30.0/Refresh_Frequency);
+		view.setSize(Level_Initial_View_Width+(Window_Width - Level_Initial_View_Width) / Refresh_Frequency / 3 * startingCounter, Level_Initial_View_Height+(Window_Height - Level_Initial_View_Height) / Refresh_Frequency / 3 * startingCounter);
+		if (startingCounter >= Refresh_Frequency * 3) {
+			startingCounter = 0;
+			view.setRotation(0);
+			view.setSize(Window_Width, Window_Height);
+			startingGame = false;
+		}
+		++startingCounter;
+	}
+	else if (player.isSpaceshipHit()) {
 		player.explode();
 	}
 	else if (player.isNextLifeUsed()) {
@@ -370,6 +388,9 @@ void Level::processAction() {
 }
 
 void Level::render(RenderWindow &window) {
+	if (startingGame) {
+		window.setView(view);
+	}
 	vector<shared_ptr<BackgroundPanel>> visiblePanels = background.getVisiblePanels();
 	for (shared_ptr<BackgroundPanel> p : visiblePanels)
 		window.draw(*p);
@@ -387,4 +408,24 @@ void Level::render(RenderWindow &window) {
 	}
 	window.draw(lives);
 	window.draw(score);
+}
+
+void Level::resetLevel() {
+	player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
+	player.setSpaceshipRotation(90);
+	player.setLives(3);
+	player.setScore(0);
+	player.reset();
+	background.resetPanels();
+	initializeAsteroids();
+	ostringstream ss;
+	ss << "Life: " << player.getLives();
+	lives.setString(ss.str());
+	ss.str("");
+	ss << "Score: " << player.getScore();
+	score.setString(ss.str());
+	view.setRotation(90);
+	view.setSize(Level_Initial_View_Width, Level_Initial_View_Height);
+	startingGame = true;
+	startingCounter = 0;
 }

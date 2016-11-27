@@ -40,6 +40,7 @@ public:
 	Vector2f getShift(Player &player);
 	void shiftPanels(Vector2f v);
 	void rotatePanels(Vector2f v);
+	void resetPanels();
 };
 
 vector<shared_ptr<BackgroundPanel>> Background::getVisiblePanels() {
@@ -162,4 +163,12 @@ void Background::rotatePanels(Vector2f v) {
 		}
 		currentBackgroundPanel = backgroundPanels[x][y];
 	}
+}
+
+void Background::resetPanels() {
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++) {
+			backgroundPanels[i][j]->setPosition(Current_Background_Panel_Initial_X_Position + (j - 1)*Background_Panel_Width, Current_Background_Panel_Initial_Y_Position + (i - 1)*Background_Panel_Height);
+		}
+	currentBackgroundPanel = backgroundPanels[1][1];
 }
