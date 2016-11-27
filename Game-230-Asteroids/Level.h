@@ -73,9 +73,10 @@ public:
 	}
 	void setDisplayWindow(FloatRect w) { background.setDisplayWindow(w); }
 	Interface processEvent(Event event);
-	void processAction();
+	Interface processAction();
 	void render(RenderWindow &window);
 	void resetLevel();
+	int getScore() { return player.getScore(); }
 };
 
 void Level::initializeAsteroids() {
@@ -298,13 +299,13 @@ Interface Level::processEvent(Event event) {
 	if (Keyboard::isKeyPressed(Keyboard::Right) && !startingGame)
 		playerRight = true;
 	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
-		resetLevel();
+		//resetLevel();
 		return Interface::MenuInterface;
 	}
 	return Interface::LevelInterface;
 }
 
-void Level::processAction() {
+Interface Level::processAction() {
 	if (playerForward)
 		player.moveForward();
 	//if (playerBackward)
@@ -337,6 +338,9 @@ void Level::processAction() {
 	}
 	else if (player.isSpaceshipHit()) {
 		player.explode();
+	}
+	else if (player.isGameOver()) {
+		return Interface::GameoverInterface;
 	}
 	else if (player.isNextLifeUsed()) {
 		player.prepareForBattle();
@@ -385,6 +389,7 @@ void Level::processAction() {
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		a->move();
 	spawnAsteroids();
+	return Interface::LevelInterface;
 }
 
 void Level::render(RenderWindow &window) {
@@ -396,7 +401,7 @@ void Level::render(RenderWindow &window) {
 		window.draw(*p);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids)
 		window.draw(*a);
-	if (!player.isSpaceshipHit()) {
+	if (!player.isGameOver()&&!player.isSpaceshipHit()) {
 		if (player.isSpaceshipVisible()) {
 			if (playerForward)
 				window.draw(player.getSpaceship()->getEngineFlame());

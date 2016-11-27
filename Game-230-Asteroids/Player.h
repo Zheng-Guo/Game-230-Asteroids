@@ -43,6 +43,7 @@ public:
 	void reset() { isInvincible = false; invincibilityCounter = 0; spaceship->reset(); spaceship->setSpaceshipRotation(90); }
 	bool isSpaceshipVisible() { return isVisible; }
 	bool isNextLifeUsed() { return lives>0&&!spaceship->getIsHit() && isInvincible; }
+	bool isGameOver() { return lives <= 0; }
 	void prepareForBattle();
 };
 

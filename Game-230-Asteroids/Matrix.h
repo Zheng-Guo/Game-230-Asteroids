@@ -14,15 +14,10 @@ public:
 
 	}
 	Vector2f operator*(const Vector2f &v);
-	Matrix operator-();
 };
 
 Vector2f Matrix::operator*(const Vector2f &v) {
 	float x = m11*v.x + m12*v.y;
 	float y = m21*v.x + m22*v.y;
 	return Vector2f(x, y);
-}
-
-Matrix Matrix::operator-() {
-	return Matrix(-m11, -m12, -m21, -m22);
 }

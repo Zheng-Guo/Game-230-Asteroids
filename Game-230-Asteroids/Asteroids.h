@@ -5,6 +5,7 @@
 #include "GameConstants.h"
 #include "MainMenu.h"
 #include "Level.h"
+#include "GameOver.h"
 
 using namespace sf;
 using namespace std;
@@ -15,6 +16,7 @@ private:
 	View initialView;
 	MainMenu mainMenu;
 	Level level;
+	GameOver gameOver;
 	Clock clock;
 	Time time1, time2, time3;
 	Interface currentInterface;
@@ -48,10 +50,12 @@ void Asteroids::startGame() {
 			switch (currentInterface) {
 			case Interface::MenuInterface:currentInterface = mainMenu.processEvent(event); 
 				if (currentInterface == Interface::Exit) window.close(); 
-				if (currentInterface == Interface::LevelInterface) level.resetLevel(); 
 				break;
 			case Interface::LevelInterface:currentInterface = level.processEvent(event); 
 				if (currentInterface == Interface::MenuInterface) { mainMenu.resetMainMenu(); window.setView(initialView); } 
+				break;
+			case Interface::GameoverInterface:currentInterface = gameOver.processEvent(event); 
+				if (currentInterface == Interface::MenuInterface) mainMenu.resetMainMenu(); 
 				break;
 			}		
 		}
@@ -60,14 +64,19 @@ void Asteroids::startGame() {
 		if (time3.asSeconds() >= Refresh_Interval) {
 			time1 = time2;
 			switch (currentInterface) {
-			case Interface::MenuInterface: currentInterface=mainMenu.processAction(); break;
-			case Interface::LevelInterface:level.processAction(); break;
+			case Interface::MenuInterface: currentInterface=mainMenu.processAction(); 
+				if (currentInterface == Interface::LevelInterface) level.resetLevel(); 
+				break;
+			case Interface::LevelInterface:currentInterface=level.processAction(); 
+				if (currentInterface == Interface::GameoverInterface) gameOver.setScore(level.getScore()); 
+				break;
 			}
 		}
 		window.clear();
 		switch (currentInterface) {
 		case Interface::MenuInterface: mainMenu.render(window); break;
 		case Interface::LevelInterface:level.render(window); break;
+		case Interface::GameoverInterface:gameOver.render(window); break;
 		}
 		window.display();
 	}
