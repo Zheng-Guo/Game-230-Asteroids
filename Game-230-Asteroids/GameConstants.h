@@ -119,6 +119,7 @@ const float Black_Curtain_Width = 100;
 const float Black_Curtain_Height = 100;
 const int Black_Curtain_Row_Number = 10;
 const int Black_Curtain_Column_Number = 10;
+const char Level_Clear_Sound[] = "audio/levelClear.wav";
 const float PI = 3.14159265;
 const float Degree_To_Radian = PI / 180;
 enum AsteroidSize{Small,Medium,Large};

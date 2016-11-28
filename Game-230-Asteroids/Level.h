@@ -42,6 +42,8 @@ private:
 	int levelEndCounter;
 	vector<RectangleShape> blackCurtains;
 	vector<RectangleShape> displayedBlackCurtains;
+	SoundBuffer levelClearSoundBuffer;
+	Sound levelClearSound;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
@@ -96,6 +98,8 @@ public:
 				blackCurtains.push_back(r);
 			}
 		}
+		levelClearSoundBuffer.loadFromFile(Level_Clear_Sound);
+		levelClearSound.setBuffer(levelClearSoundBuffer);
 		view.setRotation(90);
 		srand(time(NULL));
 	}
@@ -411,11 +415,17 @@ Interface Level::processAction() {
 		else
 			++i;
 	}
-	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0) {
+	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0&&!levelClear) {
+		levelClearSound.play();
 		levelClear = true;
 		gameEndMessage.setString("Level Clear");
 		gameEndInstruction.setString("Proceed to next level");
 	}	
+	if (player.isGameOver() && !gameOver) {
+		gameOver = true;
+		gameEndMessage.setString("Game Over");
+		gameEndInstruction.setString("Please restart the game");
+	}
 	player.getSpaceship()->recycleGunShots(spawnBound);
 	FloatRect visibleArea(0, 0, Window_Width, Window_Height);
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots()) {
@@ -475,8 +485,20 @@ Interface Level::processAction() {
 			}
 		}
 	}
-	else if (player.isGameOver()) {
-		return Interface::GameoverInterface;
+	else if (gameOver) {
+		if (levelEndCounter < Refresh_Frequency * 3) {
+			++levelEndCounter;
+		}
+		else {
+			if (blackCurtains.size() > 0) {
+				int i = rand() % blackCurtains.size();
+				displayedBlackCurtains.push_back(blackCurtains[i]);
+				blackCurtains.erase(blackCurtains.begin() + i);
+			}
+			else {
+				return Interface::GameoverInterface;
+			}
+		}
 	}
 	else if (player.isNextLifeUsed()) {
 		player.prepareForBattle();
