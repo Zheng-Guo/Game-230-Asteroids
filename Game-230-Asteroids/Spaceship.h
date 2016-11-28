@@ -20,6 +20,13 @@ private:
 	int explosionCounter;
 	int explosionTextureX, explosionTextureY;
 	int explosionSpeed;
+	SoundBuffer gunSoundBuffer;
+	SoundBuffer engineSoundBuffer;
+	SoundBuffer explosionSoundBuffer;
+	Sound gunSound;
+	Sound engineSound;
+	Sound explosionSound;
+	int engineSoundCounter;
 	float direction;
 	float angularSpeed;
 	float thrust, fullSpeed;
@@ -28,6 +35,7 @@ private:
 	bool fireGun;
 	vector<shared_ptr<GunShot>> gunShots;
 	int firingCounter;
+	void playEngineSound();
 public:
 	Spaceship(float size,float direction,float thrust,float fullSpeed,float angularSpeed):CircleShape(size),
 	direction(direction),
@@ -41,7 +49,8 @@ public:
 	explosionSpeed(Explosion_Speed),
 	isHit(false),
 	fireGun(false),
-	firingCounter(0){
+	firingCounter(0),
+	engineSoundCounter(0){
 		setOrigin(size, size);
 		rotate(direction);
 		flame.rotate(direction);
@@ -51,10 +60,15 @@ public:
 		explosion.setOrigin(explosion.getSize().x/2, explosion.getSize().y / 2);
 		explosion.setPosition(getPosition());
 		GunShot::loadTexture();
-	//	for (int i = 0; i < Gun_Shot_Number; ++i) {
-	//		shared_ptr<GunShot> gunshot = make_shared<GunShot>(Gun_Shot_Size,Gun_Shot_Speed);
-	//		gunShots.push_back(gunshot);
-	//	}
+		gunSoundBuffer.loadFromFile(Spaceship_Gun_Shot_Sound);
+		engineSoundBuffer.loadFromFile(Spaceship_Engine_Sound);
+		explosionSoundBuffer.loadFromFile(Explosion_Sound);
+		gunSound.setBuffer(gunSoundBuffer);
+		engineSound.setBuffer(engineSoundBuffer);
+		explosionSound.setBuffer(explosionSoundBuffer);
+		gunSound.setVolume(50);
+		engineSound.setVolume(50);
+		explosionSound.setVolume(50);
 	}
 
 	void setPosition(float x,float y);
@@ -83,6 +97,7 @@ public:
 	void fire();
 	void recycleGunShots(FloatRect r);
 	void reset();
+	void resetEngineSound() { engineSoundCounter = 0; }
 };
 
 void Spaceship::setPosition(float x, float y) {
@@ -117,6 +132,7 @@ void Spaceship::moveForward() {
 	Vector2f newVelocityInLocalCoordinates(xSpeed, velocityInLocalCoordinates.y);
 	Matrix reverseRotationMatrix(cos(-direction*Degree_To_Radian), sin(-direction*Degree_To_Radian), -sin(-direction*Degree_To_Radian), cos(-direction*Degree_To_Radian));
 	velocity = reverseRotationMatrix*newVelocityInLocalCoordinates;
+	playEngineSound();
 }
 /*
 void Spaceship::moveBackward() {
@@ -164,6 +180,10 @@ void Spaceship::move() {
 
 void Spaceship::explode() {
 	if (isHit) {
+		if (explosionTextureX == 1 && explosionTextureY == 0) {
+			engineSound.stop();
+			explosionSound.play();
+		}		
 		if (explosionCounter < explosionSpeed) {
 			explosionCounter++;
 		}
@@ -188,22 +208,17 @@ void Spaceship::fire() {
 		++firingCounter;
 	}
 	else {
+		gunSound.play();
 		firingCounter = 0;
-		//shared_ptr<GunShot> g = gunShots[0];
 		shared_ptr<GunShot> g = make_shared<GunShot>(Gun_Shot_Size, Gun_Shot_Speed);
 		g->setFired(true);
 		g->setPosition(getPosition());
 		g->setDirection(direction);
-		//gunShots.erase(gunShots.begin());
 		gunShots.push_back(g);
 	}
 }
 
 void Spaceship::recycleGunShots(FloatRect r) {
-//	for (shared_ptr<GunShot> g : gunShots) {
-//		if (g->getFired() && !r.intersects(g->getGlobalBounds()))
-//			g->setFired(false);
-//	}
 	int i = 0;
 	while (i < gunShots.size()) {
 		if (!gunShots[i]->getFired()||!r.intersects(gunShots[i]->getGlobalBounds())) {
@@ -221,4 +236,13 @@ void Spaceship::reset() {
 	explosionTextureX = 1;
 	explosionTextureY = 0;
 	isHit = false;
+}
+
+void Spaceship::playEngineSound() {
+	if (engineSoundCounter == 0)
+		engineSound.play();
+	if (engineSoundCounter < Spaceship_Engine_Sound_Duration)
+		++engineSoundCounter;
+	else 
+		engineSoundCounter = 0;
 }

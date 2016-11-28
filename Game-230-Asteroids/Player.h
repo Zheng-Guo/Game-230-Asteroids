@@ -47,6 +47,7 @@ public:
 	bool isGameOver() { return lives <= 0; }
 	void prepareForBattle();
 	void fireFun() { spaceship->fire(); }
+	void resetSpaceshipEngineSound() { spaceship->resetEngineSound(); }
 };
 
 void Player::loseLife() {

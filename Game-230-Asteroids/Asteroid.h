@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cmath>
 #include <SFML\Graphics.hpp>
+#include <SFML\Audio.hpp>
 #include "GameConstants.h"
 
 using namespace sf;
@@ -30,6 +31,8 @@ private:
 	bool collideWithAnotherAsteroid(shared_ptr<Asteroid> a);
 	Vector2f velocityAfterCollision(shared_ptr<Asteroid> a);
 	Vector2f previousPosition;
+	static SoundBuffer soundBuffer;
+	Sound sound;
 public:
 	Asteroid(float r, AsteroidSize s) :CircleShape(r),
 		size(s),
@@ -54,8 +57,11 @@ public:
 		explosion.setTextureRect(IntRect(0, 0, Asteroid_Explosion_Frame_Width, Asteroid_Explosion_Frame_Height));
 		explosion.setOrigin(explosion.getSize().x / 2, explosion.getSize().y / 2);
 		explosion.setPosition(getPosition());
+		sound.setBuffer(soundBuffer);
+		sound.setVolume(25);
 	}
 	void setPosition(float x, float y) { CircleShape::setPosition(x, y); explosion.setPosition(x, y); }
+	AsteroidSize getSize() { return size; }
 	void setVelocity(Vector2f v) { velocity = v; }
 	Vector2f getVelocity() { return velocity; }
 	void setIsHit(bool t) { isHit = t; }
@@ -72,6 +78,7 @@ public:
 	RectangleShape getExplosion() { return explosion; }
 	void explode();
 	static void loadTextures();
+	static void loadSounds();
 };
 
 Texture Asteroid::textures[3];
@@ -82,6 +89,12 @@ void Asteroid::loadTextures() {
 	textures[1].loadFromFile(Asteroid_Medium_Texture);
 	textures[2].loadFromFile(Asteroid_Large_Texture);
 	explosionTexture.loadFromFile(Asteroid_Explosion_Texture);
+}
+
+SoundBuffer Asteroid::soundBuffer;
+
+void Asteroid::loadSounds() {
+	soundBuffer.loadFromFile(Explosion_Sound);
 }
 
 bool Asteroid::collideWithAnotherAsteroid(shared_ptr<Asteroid> a) {
@@ -183,6 +196,8 @@ vector<shared_ptr<Asteroid>> Asteroid::damage(DamageType d) {
 
 void Asteroid::explode() {
 //	if (isHit) {
+	if (explosionTextureX == 1 && explosionTextureY == 0)
+		sound.play();
 		if (explosionCounter < explosionSpeed) {
 			explosionCounter++;
 		}

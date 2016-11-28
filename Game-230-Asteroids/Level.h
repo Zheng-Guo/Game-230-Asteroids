@@ -37,6 +37,9 @@ private:
 	View view;
 	bool playerForward,playerBackward,playerLeft, playerRight;
 	bool fireGun;
+	Text gameEndMessage, gameEndInstruction;
+	bool levelClear, gameOver;
+	int levelEndCounter;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
@@ -50,11 +53,15 @@ public:
 	asteroidSpawningCounter(0),
 	startingGame(true),
 	startingCounter(0),
+	levelClear(false),
+	gameOver(false),
+	levelEndCounter(0),
 	view(FloatRect(Level_Initial_View_X,Level_Initial_View_Y,Level_Initial_View_Width,Level_Initial_View_Height)) {
 		player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
 		player.setLives(3);
 		player.setScore(0);
 		Asteroid::loadTextures();
+		Asteroid::loadSounds();
 		initializeAsteroids();
 		font.loadFromFile("Tinos-Regular.ttf");
 		ostringstream ss;
@@ -71,6 +78,14 @@ public:
 		score.setCharacterSize(Stat_Character_Size);
 		score.setFillColor(Color::Yellow);
 		score.setPosition(Score_X_Position, Score_Y_Position);
+		gameEndMessage.setFont(font);
+		gameEndMessage.setCharacterSize(Game_End_Message_Character_Size);
+		gameEndMessage.setFillColor(Color::White);
+		gameEndMessage.setPosition(Game_End_Message_X,Game_End_Message_Y);
+		gameEndInstruction.setFont(font);
+		gameEndInstruction.setCharacterSize(Game_End_Instruction_Character_Size);
+		gameEndInstruction.setFillColor(Color::White);
+		gameEndInstruction.setPosition(Game_End_Instruction_X, Game_End_Instruction_Y);
 		view.setRotation(90);
 	}
 	void setDisplayWindow(FloatRect w) { background.setDisplayWindow(w); }
@@ -97,16 +112,19 @@ void Level::initializeAsteroids() {
 }
 
 void Level::spawnAsteroid() {
-	int i = 0;
+	int i = 0,spawnedLargeAsteroids=0;
 	while (i < spawnedAsteroids.size()) {
 		if (!spawnBound.intersects(spawnedAsteroids[i]->getGlobalBounds())) {
 			asteroids.push_back(spawnedAsteroids[i]);
 			spawnedAsteroids.erase(spawnedAsteroids.begin() + i);
 		}
-		else
+		else {
+			if (spawnedAsteroids[i]->getSize() == AsteroidSize::Large)
+				++spawnedLargeAsteroids;
 			++i;
+		}
 	}
-	if (spawnedAsteroids.size() < Minimum_Spawn_Asteroid_Number&&asteroids.size()>0) {
+	if (spawnedLargeAsteroids < Minimum_Spawn_Asteroid_Number&&asteroids.size()>0) {
 		shared_ptr<Asteroid> nextAsteroid = asteroids[0];
 		float x, y;
 		bool suitableSpawnPoint;
@@ -335,18 +353,18 @@ bool Level::spaceshipCollision() {
 Interface Level::processEvent(Event event) {
 	playerForward=false,playerBackward=false,playerLeft = false, playerRight = false;
 	fireGun = false;
-	if (Keyboard::isKeyPressed(Keyboard::Up)&&!startingGame)
+	if (Keyboard::isKeyPressed(Keyboard::Up)&&!startingGame&&!levelClear)
 		playerForward = true;
-	if (Keyboard::isKeyPressed(Keyboard::Down) && !startingGame)
+	if (Keyboard::isKeyPressed(Keyboard::Down) && !startingGame && !levelClear)
 		playerBackward = true;
-	if (Keyboard::isKeyPressed(Keyboard::Left) && !startingGame)
+	if (Keyboard::isKeyPressed(Keyboard::Left) && !startingGame && !levelClear)
 		playerLeft = true;
-	if (Keyboard::isKeyPressed(Keyboard::Right) && !startingGame)
+	if (Keyboard::isKeyPressed(Keyboard::Right) && !startingGame && !levelClear)
 		playerRight = true;
 	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
 		return Interface::MenuInterface;
 	}
-	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame && !player.isSpaceshipHit()&&!player.getIsInvincible())
+	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame && !player.isSpaceshipHit()&&!player.getIsInvincible() && !levelClear)
 		fireGun = true;
 	return Interface::LevelInterface;
 }
@@ -354,6 +372,8 @@ Interface Level::processEvent(Event event) {
 Interface Level::processAction() {
 	if (playerForward)
 		player.moveForward();
+	else
+		player.resetSpaceshipEngineSound();
 	//if (playerBackward)
 	//	player.moveBackward();
 	if (playerLeft)
@@ -379,6 +399,8 @@ Interface Level::processAction() {
 		else
 			++i;
 	}
+	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0)
+		levelClear = true;
 	player.getSpaceship()->recycleGunShots(spawnBound);
 	FloatRect visibleArea(0, 0, Window_Width, Window_Height);
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots()) {
@@ -422,6 +444,10 @@ Interface Level::processAction() {
 	}
 	else if (player.isSpaceshipHit()) {
 		player.explode();
+	}
+	else if (levelClear) {
+		gameEndMessage.setString("Level Clear");
+		gameEndInstruction.setString("Proceed to next level");
 	}
 	else if (player.isGameOver()) {
 		return Interface::GameoverInterface;
@@ -496,6 +522,10 @@ void Level::render(RenderWindow &window) {
 	if (!startingGame) {
 		window.draw(lives);
 		window.draw(score);
+	}
+	if (levelClear || gameOver) {
+		window.draw(gameEndMessage);
+		window.draw(gameEndInstruction);
 	}
 }
 
