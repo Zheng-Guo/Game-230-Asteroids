@@ -40,6 +40,8 @@ private:
 	Text gameEndMessage, gameEndInstruction;
 	bool levelClear, gameOver;
 	int levelEndCounter;
+	vector<RectangleShape> blackCurtains;
+	vector<RectangleShape> displayedBlackCurtains;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
@@ -86,7 +88,16 @@ public:
 		gameEndInstruction.setCharacterSize(Game_End_Instruction_Character_Size);
 		gameEndInstruction.setFillColor(Color::White);
 		gameEndInstruction.setPosition(Game_End_Instruction_X, Game_End_Instruction_Y);
+		for (int i = 0; i < Black_Curtain_Row_Number;++i) {
+			for (int j = 0; j < Black_Curtain_Column_Number; ++j) {
+				RectangleShape r(Vector2f(Black_Curtain_Width, Black_Curtain_Height));
+				r.setFillColor(Color::Black);
+				r.setPosition(i*Black_Curtain_Width, j*Black_Curtain_Height);
+				blackCurtains.push_back(r);
+			}
+		}
 		view.setRotation(90);
+		srand(time(NULL));
 	}
 	void setDisplayWindow(FloatRect w) { background.setDisplayWindow(w); }
 	Interface processEvent(Event event);
@@ -94,6 +105,7 @@ public:
 	void render(RenderWindow &window);
 	void resetLevel();
 	int getScore() { return player.getScore(); }
+	void nextLevel();
 };
 
 void Level::initializeAsteroids() {
@@ -399,8 +411,11 @@ Interface Level::processAction() {
 		else
 			++i;
 	}
-	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0)
+	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0) {
 		levelClear = true;
+		gameEndMessage.setString("Level Clear");
+		gameEndInstruction.setString("Proceed to next level");
+	}	
 	player.getSpaceship()->recycleGunShots(spawnBound);
 	FloatRect visibleArea(0, 0, Window_Width, Window_Height);
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots()) {
@@ -418,7 +433,7 @@ Interface Level::processAction() {
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 		if(g->getFired())
 			g->move();
-	if (!player.isSpaceshipHit()) {
+	if (!player.isSpaceshipHit()&&!levelClear&&!gameOver) {
 		player.act();
 		if (!background.isWithinInnerBound(*player.getSpaceship())) {
 			Vector2f shift = background.getShift(player);
@@ -446,8 +461,19 @@ Interface Level::processAction() {
 		player.explode();
 	}
 	else if (levelClear) {
-		gameEndMessage.setString("Level Clear");
-		gameEndInstruction.setString("Proceed to next level");
+		if (levelEndCounter < Refresh_Frequency * 3) {
+			++levelEndCounter;
+		}
+		else {
+			if (blackCurtains.size() > 0) {
+				int i = rand() % blackCurtains.size();
+				displayedBlackCurtains.push_back(blackCurtains[i]);
+				blackCurtains.erase(blackCurtains.begin() + i);
+			}
+			else {
+				nextLevel();
+			}
+		}
 	}
 	else if (player.isGameOver()) {
 		return Interface::GameoverInterface;
@@ -526,6 +552,8 @@ void Level::render(RenderWindow &window) {
 	if (levelClear || gameOver) {
 		window.draw(gameEndMessage);
 		window.draw(gameEndInstruction);
+		for (RectangleShape r : displayedBlackCurtains)
+			window.draw(r);
 	}
 }
 
@@ -547,4 +575,33 @@ void Level::resetLevel() {
 	view.setSize(Level_Initial_View_Width, Level_Initial_View_Height);
 	startingGame = true;
 	startingCounter = 0;
+	levelClear = false;
+	gameOver = false;
+	levelEndCounter = 0;
+	blackCurtains.insert(blackCurtains.begin(), displayedBlackCurtains.begin(), displayedBlackCurtains.end());
+	displayedBlackCurtains.clear();
+}
+
+void Level::nextLevel() {
+	player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
+	player.setSpaceshipRotation(90);
+	player.reset();
+	asteroidNumberIncrement += Asteroid_Number_Increment;
+	background.resetPanels();
+	initializeAsteroids();
+	ostringstream ss;
+	ss << "Life: " << player.getLives();
+	lives.setString(ss.str());
+	ss.str("");
+	ss << "Score: " << player.getScore();
+	score.setString(ss.str());
+	view.setRotation(90);
+	view.setSize(Level_Initial_View_Width, Level_Initial_View_Height);
+	startingGame = true;
+	startingCounter = 0;
+	levelClear = false;
+	gameOver = false;
+	levelEndCounter = 0;
+	blackCurtains.insert(blackCurtains.begin(), displayedBlackCurtains.begin(), displayedBlackCurtains.end());
+	displayedBlackCurtains.clear();
 }

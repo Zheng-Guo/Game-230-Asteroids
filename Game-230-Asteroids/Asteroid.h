@@ -49,7 +49,7 @@ public:
 		angularVelocity=rand() % (Asteroid_Maximum_Angular_Velocity - Asteroid_Minimum_Angular_Velocity) + Asteroid_Minimum_Angular_Velocity;
 		angularVelocity *= (rand() % 2 == 0) ? -1 : 1;
 		switch (s) {
-		case AsteroidSize::Small:setTexture(&textures[0]); mass = Asteroid_Mass_Small; score = Asteroid_Full_Score / 8; break;
+		case AsteroidSize::Small:setTexture(&textures[0]); mass = Asteroid_Mass_Small; score = Asteroid_Full_Score / 16; break;
 		case AsteroidSize::Medium:setTexture(&textures[1]); mass = Asteroid_Mass_Medium; score = Asteroid_Full_Score / 4; break;
 		case AsteroidSize::Large:setTexture(&textures[2]); mass = Asteroid_Mass_Large; score = Asteroid_Full_Score; break;
 		}
