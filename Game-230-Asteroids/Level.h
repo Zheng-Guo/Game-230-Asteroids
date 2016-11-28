@@ -53,7 +53,7 @@ private:
 	void spawnAsteroids();
 	void rebucket();
 	set<shared_ptr<Asteroid>> getCollidibleAsteroids();
-	set<shared_ptr<Asteroid>> getTargetAsteroids(shared_ptr<GunShot> g);
+	set<shared_ptr<Asteroid>> getTargetAsteroids(shared_ptr<CircleShape> g);
 	set<shared_ptr<Asteroid>> getVisibleAsteroids();
 	bool spaceshipCollision();
 public:
@@ -323,7 +323,7 @@ set<shared_ptr<Asteroid>> Level::getCollidibleAsteroids() {
 	return collidibleAsteroids;
 }
 
-set<shared_ptr<Asteroid>> Level::getTargetAsteroids(shared_ptr<GunShot> g) {
+set<shared_ptr<Asteroid>> Level::getTargetAsteroids(shared_ptr<CircleShape> g) {
 	set<shared_ptr<Asteroid>> targets;
 	int i = (g->getPosition().x - Spawn_Bound_Left) / Bucket_Grid_Width, j = (g->getPosition().y - Spawn_Bound_Top) / Bucket_Grid_Height;
 	targets.insert(bucketGrid[j][i].begin(), bucketGrid[j][i].end());
@@ -366,7 +366,7 @@ set<shared_ptr<Asteroid>> Level::getTargetAsteroids(shared_ptr<GunShot> g) {
 set<shared_ptr<Asteroid>> Level::getVisibleAsteroids() {
 	set<shared_ptr<Asteroid>> targets;
 	for (int i = 1; i < Bucket_Grid_Row_Number - 1; ++i)
-		for (int j = i; j < Bucket_Grid_Column_Number - 1; ++j)
+		for (int j = 1; j < Bucket_Grid_Column_Number - 1; ++j)
 			targets.insert(bucketGrid[i][j].begin(), bucketGrid[i][j].end());
 	return targets;
 }
@@ -426,7 +426,7 @@ Interface Level::processAction() {
 	int i = 0;
 	while (i < spawnedAsteroids.size()) {
 		if (spawnedAsteroids[i]->getIsSplit()) {
-			vector<shared_ptr<Asteroid>> childAsteroids = spawnedAsteroids[i]->damage(DamageType::Split);
+			vector<shared_ptr<Asteroid>> childAsteroids = spawnedAsteroids[i]->damage();
 			for (shared_ptr<Asteroid> a : childAsteroids)
 				spawnedAsteroids.push_back(a);
 		}
@@ -480,6 +480,18 @@ Interface Level::processAction() {
 				ss << "Score: " << player.getScore();
 				score.setString(ss.str());
 			}				
+		}
+	}
+	for (shared_ptr<Missile> m : player.getSpaceship()->getMissiles()) {
+		if (visibleArea.intersects(m->getGlobalBounds())) {
+			shared_ptr<Asteroid> target = m->target(getTargetAsteroids(m));
+			if (target != nullptr && !target->getIsHit() && !target->getIsDestroyed()) {
+				m->setFired(false);
+				player.addScore(m->hitTarget(target));
+				ostringstream ss;
+				ss << "Score: " << player.getScore();
+				score.setString(ss.str());
+			}
 		}
 	}
 	if (player.getSpaceship()->getMissileLaunched()) {
