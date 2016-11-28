@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <SFML\Graphics.hpp>
 #include "GameConstants.h"
 #include "Matrix.h"
@@ -105,7 +106,7 @@ public:
 	void fire();
 	void recycleGunShots(FloatRect r);
 	vector<shared_ptr<Missile>> getMissiles() { return missiles; }
-	void prepareMissiles();
+	void prepareMissiles(set<shared_ptr<Asteroid>> targets);
 	void launchMissiles();
 	void recycleMissiles(FloatRect r);
 	void setMissileLaunched(bool b) { missileLaunched = b; }
@@ -254,11 +255,24 @@ void Spaceship::recycleMissiles(FloatRect r) {
 	}
 }
 
-void Spaceship::prepareMissiles() {
+void Spaceship::prepareMissiles(set<shared_ptr<Asteroid>> targets) {
 	missileLaunched = true;
 	nextMissileToBeLaunched = 0;
+	vector<shared_ptr<Asteroid>> orderedTargets;
+	orderedTargets.insert(orderedTargets.begin(), targets.begin(), targets.end());
+	Vector2f position = getPosition();
+	auto predicate = [position](shared_ptr<Asteroid> a,shared_ptr<Asteroid> b) {
+		Vector2f offset1 = a->getPosition() - position, offset2 = b->getPosition() - position;
+		float distance1 = sqrt(offset1.x*offset1.x + offset1.y*offset1.y), distance2 = sqrt(offset2.x*offset2.x + offset2.y*offset2.y);
+		return distance1 < distance2;
+	};
+	sort(orderedTargets.begin(), orderedTargets.end(), predicate);
 	for (int i = 0; i < Missile_Number; ++i) {
 		shared_ptr<Missile> missile = make_shared<Missile>(Missile_Size, Missile_Thrust, Missile_Maximum_Speed, Missile_Maximum_Angular_Speed);
+		if (i < targets.size())
+			missile->setPredefinedTarget(orderedTargets[i]);
+		else
+			missile->setPredefinedTarget(nullptr);
 		missiles.push_back(missile);
 	}
 }

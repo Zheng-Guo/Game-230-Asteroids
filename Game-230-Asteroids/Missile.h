@@ -50,6 +50,7 @@ public:
 	DamageType getDamageType() { return damageType; }
 	shared_ptr<Asteroid> target(set<shared_ptr<Asteroid>> allTargets);
 	RectangleShape getFlame() { return flame; }
+	void rotate(float r);
 };
 
 Texture Missile::texture;
@@ -64,6 +65,12 @@ void Missile::setDirection(float r) {
 	direction = r;
 	setRotation(r);
 	flame.setRotation(r);
+}
+
+void Missile::rotate(float r) {
+	direction += r;
+	CircleShape::rotate(r);
+	flame.rotate(r);
 }
 
 shared_ptr<Asteroid> Missile::target(set<shared_ptr<Asteroid>> allTargets) {
@@ -101,7 +108,48 @@ void Missile::navigate() {
 	if (navigationCounter < Missile_Navigation_Preparation_Duration)
 		++navigationCounter;
 	else {
-
+		if (predefinedTarget != nullptr) {
+			Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
+			Vector2f selfPositionInLocalCoordinates = rotationMatrix*getPosition();
+			Vector2f targetPositionInLocalCoordinates = rotationMatrix*predefinedTarget->getPosition();
+			float deltaX = targetPositionInLocalCoordinates.x - selfPositionInLocalCoordinates.x, deltaY = targetPositionInLocalCoordinates.y - selfPositionInLocalCoordinates.y;
+			float angle;
+			if (deltaX == 0) {
+				if (deltaY > 0)
+					angle = PI / 2;
+				else
+					angle = -PI / 2;
+			}
+			else if (deltaY == 0) {
+				if (deltaX > 0)
+					angle = 0;
+				else
+					angle = PI;
+			}
+			else {
+				angle = atan(deltaY / deltaX);
+				if (deltaX < 0) {
+					if (deltaY > 0)
+						angle += PI;
+					else
+						angle -= PI;
+				}
+			}
+			float turningAngle = (angle < 0) ? angle + PI : angle - PI;
+			turningAngle /= Degree_To_Radian;
+			if (turningAngle < 0) {
+				if (turningAngle < maximumAngularSpeed)
+					rotate(maximumAngularSpeed);
+				else
+					rotate(turningAngle);
+			}
+			else {
+				if (turningAngle > -maximumAngularSpeed)
+					rotate(-maximumAngularSpeed);
+				else
+					rotate(turningAngle);
+			}
+		}
 	}
 }
 
@@ -112,4 +160,8 @@ void Missile::moveForward() {
 	Vector2f newVelocityInLocalCoordinates(xSpeed, velocityInLocalCoordinates.y);
 	Matrix reverseRotationMatrix(cos(-direction*Degree_To_Radian), sin(-direction*Degree_To_Radian), -sin(-direction*Degree_To_Radian), cos(-direction*Degree_To_Radian));
 	velocity = reverseRotationMatrix*newVelocityInLocalCoordinates;
+	if (navigationCounter == Missile_Navigation_Preparation_Duration) {
+		velocity = Vector2f(0, 0);
+		navigationCounter++;
+	}
 }

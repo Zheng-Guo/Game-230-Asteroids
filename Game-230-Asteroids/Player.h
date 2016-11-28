@@ -53,7 +53,7 @@ public:
 	void addLife() { lives++; }
 	void setMissileEquipped(bool b) { missileEquipped = b; }
 	bool getMissileEquipped() { return missileEquipped; }
-	void launchMissile() { if (missileEquipped) { spaceship->prepareMissiles(); missileEquipped = false; } }
+	void launchMissile(set<shared_ptr<Asteroid>> targets) { if (missileEquipped) { spaceship->prepareMissiles(targets); missileEquipped = false; } }
 };
 
 void Player::loseLife() {

@@ -54,6 +54,7 @@ private:
 	void rebucket();
 	set<shared_ptr<Asteroid>> getCollidibleAsteroids();
 	set<shared_ptr<Asteroid>> getTargetAsteroids(shared_ptr<GunShot> g);
+	set<shared_ptr<Asteroid>> getVisibleAsteroids();
 	bool spaceshipCollision();
 public:
 	Level() :spawnBound(Spawn_Bound_Left, Spawn_Bound_Top, Spawn_Bound_Width, Spawn_Bound_Height),
@@ -362,6 +363,14 @@ set<shared_ptr<Asteroid>> Level::getTargetAsteroids(shared_ptr<GunShot> g) {
 	return targets;
 }
 
+set<shared_ptr<Asteroid>> Level::getVisibleAsteroids() {
+	set<shared_ptr<Asteroid>> targets;
+	for (int i = 1; i < Bucket_Grid_Row_Number - 1; ++i)
+		for (int j = i; j < Bucket_Grid_Column_Number - 1; ++j)
+			targets.insert(bucketGrid[i][j].begin(), bucketGrid[i][j].end());
+	return targets;
+}
+
 bool Level::spaceshipCollision() {
 	set<shared_ptr<Asteroid>> collidibleAsteroids = getCollidibleAsteroids();
 	shared_ptr<Spaceship> spaceship = player.getSpaceship();
@@ -393,7 +402,7 @@ Interface Level::processEvent(Event event) {
 	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame && !player.isSpaceshipHit()&&!player.getIsInvincible() && !levelClear)
 		fireGun = true;
 	if (Keyboard::isKeyPressed(Keyboard::M) && !startingGame && !player.isSpaceshipHit() && !player.getIsInvincible() && !levelClear)
-		player.launchMissile();
+		player.launchMissile(getVisibleAsteroids());
 	return Interface::LevelInterface;
 }
 
