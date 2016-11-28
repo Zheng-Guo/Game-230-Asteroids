@@ -418,6 +418,7 @@ Interface Level::processAction() {
 	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0&&!levelClear) {
 		levelClearSound.play();
 		levelClear = true;
+		fireGun = false;
 		gameEndMessage.setString("Level Clear");
 		gameEndInstruction.setString("Proceed to next level");
 	}	
@@ -431,7 +432,7 @@ Interface Level::processAction() {
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots()) {
 		if (visibleArea.intersects(g->getGlobalBounds())) {
 			shared_ptr<Asteroid> target = g->target(getTargetAsteroids(g));
-			if (target != nullptr) {
+			if (target != nullptr&&!target->getIsHit()&&!target->getIsDestroyed()) {
 				g->setFired(false);
 				player.addScore(g->hitTarget(target));
 				ostringstream ss;

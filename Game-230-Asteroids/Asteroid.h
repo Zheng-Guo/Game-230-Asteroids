@@ -195,7 +195,6 @@ vector<shared_ptr<Asteroid>> Asteroid::damage(DamageType d) {
 }
 
 void Asteroid::explode() {
-//	if (isHit) {
 	if (explosionTextureX == 1 && explosionTextureY == 0)
 		sound.play();
 		if (explosionCounter < explosionSpeed) {
@@ -217,5 +216,4 @@ void Asteroid::explode() {
 			if (explosionTextureX == Asteroid_Split_Frame_X&&explosionTextureY == Asteroid_Split_Frame_Y)
 				isSplit = true;
 		}
-//	}
 }
