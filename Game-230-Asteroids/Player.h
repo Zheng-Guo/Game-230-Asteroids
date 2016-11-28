@@ -48,6 +48,7 @@ public:
 	void prepareForBattle();
 	void fireFun() { spaceship->fire(); }
 	void resetSpaceshipEngineSound() { spaceship->resetEngineSound(); }
+	void addLife() { lives++; }
 };
 
 void Player::loseLife() {

@@ -427,7 +427,13 @@ Interface Level::processAction() {
 		if (powerUps[i].getExpired())
 			powerUps.erase(powerUps.begin() + i);
 		else {
-			powerUps[i].expiring();
+			int p=powerUps[i].interact(player);
+			if (p == 1) {
+				ostringstream ss;
+				ss << "Life: " << player.getLives();
+				lives.setString(ss.str());
+			}
+			powerUps[i].expiring();			
 			++i;
 		}
 	}
@@ -470,6 +476,8 @@ Interface Level::processAction() {
 				a->shiftPosition(shift);
 			for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 				g->shift(shift);
+			for (int i=0;i<powerUps.size();++i)
+				powerUps[i].shift(shift);
 		}
 	}
 	rebucket();

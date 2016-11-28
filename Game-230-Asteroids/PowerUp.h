@@ -29,7 +29,8 @@ public:
 	void setExpired(bool t) { isExpired = t; }
 	bool getExpired() { return isExpired; }
 	void expiring();
-	//void interace()
+	int interact(Player &p);
+	void shift(Vector2f v) { CircleShape::move(v); }
 	static void loadTextures();
 };
 
@@ -54,4 +55,15 @@ void PowerUp::expiring() {
 		isExpired = true;
 	}
 	++expiringCounter;
+}
+
+int PowerUp::interact(Player &p) {
+	Vector2f offset = getPosition() - p.getSpaceship()->getPosition();
+	float distance=sqrt(offset.x*offset.x + offset.y*offset.y);
+	if (distance < getRadius() + p.getSpaceship()->getRadius()) {
+		p.addLife();
+		isExpired = true;
+		return 1;
+	}
+	return 0;
 }
