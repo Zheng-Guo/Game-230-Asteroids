@@ -369,7 +369,12 @@ Interface Level::processAction() {
 	}
 	int i = 0;
 	while (i < spawnedAsteroids.size()) {
-		if (spawnedAsteroids[i]->getIsDestroyed()) {
+		if (spawnedAsteroids[i]->getIsSplit()) {
+			vector<shared_ptr<Asteroid>> childAsteroids = spawnedAsteroids[i]->damage(0);
+			for (shared_ptr<Asteroid> a : childAsteroids)
+				spawnedAsteroids.push_back(a);
+		}
+		if (spawnedAsteroids[i]->getIsDestroyed()) {		
 			spawnedAsteroids.erase(spawnedAsteroids.begin() + i);
 		}
 		else
@@ -383,8 +388,10 @@ Interface Level::processAction() {
 			if (target != nullptr) {
 				g->setFired(false);
 				g->hitTarget(target);
-			}
-				
+			//	vector<shared_ptr<Asteroid>> childAsteroids = target->damage(0);
+			//	for (shared_ptr<Asteroid> a : childAsteroids)
+			//		spawnedAsteroids.push_back(a);
+			}				
 		}
 	}
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
@@ -481,10 +488,12 @@ void Level::render(RenderWindow &window) {
 	for (shared_ptr<BackgroundPanel> p : visiblePanels)
 		window.draw(*p);
 	for (shared_ptr<Asteroid> a : spawnedAsteroids) {
+		if(!a->getIsHit())
+			window.draw(*a);
+	}
+	for (shared_ptr<Asteroid> a : spawnedAsteroids) {
 		if (a->getIsHit()&&!a->getIsDestroyed())
 			window.draw(a->getExplosion());
-		else
-			window.draw(*a);
 	}
 		
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())

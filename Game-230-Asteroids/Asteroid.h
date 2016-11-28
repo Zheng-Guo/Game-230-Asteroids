@@ -25,6 +25,7 @@ private:
 	int explosionSpeed;
 	bool isHit;
 	bool isDestroyed;
+	bool isSplit;
 	bool collideWithAnotherAsteroid(shared_ptr<Asteroid> a);
 	Vector2f velocityAfterCollision(shared_ptr<Asteroid> a);
 	Vector2f previousPosition;
@@ -37,7 +38,8 @@ public:
 		explosionTextureY(0),
 		explosionSpeed(Explosion_Speed),
 		isHit(false),
-		isDestroyed(false){
+		isDestroyed(false),
+		isSplit(false){
 		srand(time(NULL));
 		setOrigin(r, r);
 		angularVelocity=rand() % (Asteroid_Maximum_Angular_Velocity - Asteroid_Minimum_Angular_Velocity) + Asteroid_Minimum_Angular_Velocity;
@@ -59,11 +61,12 @@ public:
 	bool getIsHit() { return isHit; }
 	void setIsDestroyed(bool t) { isDestroyed = t; }
 	bool getIsDestroyed() { return isDestroyed; }
+	bool getIsSplit() { return isSplit; }
 	int getMass() { return mass; }
 	void move() { CircleShape::move(velocity); rotate(angularVelocity); explosion.move(velocity); }
 	void shiftPosition(Vector2f v) { CircleShape::move(v); explosion.move(v); }
 	Vector2f newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids);
-	vector<Asteroid> damage(int d);
+	vector<shared_ptr<Asteroid>>damage(int d);
 	RectangleShape getExplosion() { return explosion; }
 	void explode();
 	static void loadTextures();
@@ -132,35 +135,36 @@ Vector2f Asteroid::newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids) {
 		return velocity;
 }
 
-vector<Asteroid> Asteroid::damage(int d) {
-	vector<Asteroid> remanents;
+vector<shared_ptr<Asteroid>> Asteroid::damage(int d) {
+	vector<shared_ptr<Asteroid>> remanents;
 	if (d == 0) {
 		if (size == AsteroidSize::Large) {
-			Asteroid a1(Asteroid_Medium_Radius, AsteroidSize::Medium), a2(Asteroid_Medium_Radius, AsteroidSize::Medium);
+			shared_ptr<Asteroid> a1=make_shared<Asteroid>(Asteroid_Medium_Radius, AsteroidSize::Medium), a2 = make_shared<Asteroid>(Asteroid_Medium_Radius, AsteroidSize::Medium);
 			float spawnAngle = rand() % 180;
 			float spawnXOffset = cos(spawnAngle*Degree_To_Radian)*(Asteroid_Large_Radius - Asteroid_Medium_Radius), spawnYOffset = sin(spawnAngle*Degree_To_Radian)*(Asteroid_Large_Radius - Asteroid_Medium_Radius);
-			a1.setPosition(getPosition().x+spawnXOffset,getPosition().y+spawnYOffset);
-			a2.setPosition(getPosition().x - spawnXOffset, getPosition().y - spawnYOffset);
+			a1->setPosition(getPosition().x+spawnXOffset,getPosition().y+spawnYOffset);
+			a2->setPosition(getPosition().x - spawnXOffset, getPosition().y - spawnYOffset);
 			float initialVelocityDirection1 = rand() % Asteroid_Spawn_Initial_Angle_Range - Asteroid_Spawn_Initial_Angle_Range + spawnAngle, initialVelocityDirection2 = rand() % Asteroid_Spawn_Initial_Angle_Range - Asteroid_Spawn_Initial_Angle_Range - spawnAngle;
 			float initialSpeed1 = rand() % (Asteroid_Maximum_Speed - Asteroid_Minimum_Speed) + Asteroid_Minimum_Speed, initialSpeed2 = rand() % (Asteroid_Maximum_Speed - Asteroid_Minimum_Speed) + Asteroid_Minimum_Speed;
-			a1.setVelocity(Vector2f(initialSpeed1*cos(initialVelocityDirection1*Degree_To_Radian), initialSpeed1*sin(initialVelocityDirection1*Degree_To_Radian)));
-			a2.setVelocity(Vector2f(initialSpeed2*cos(initialVelocityDirection2*Degree_To_Radian), initialSpeed2*sin(initialVelocityDirection2*Degree_To_Radian)));
+			a1->setVelocity(Vector2f(initialSpeed1*cos(initialVelocityDirection1*Degree_To_Radian), initialSpeed1*sin(initialVelocityDirection1*Degree_To_Radian)));
+			a2->setVelocity(Vector2f(initialSpeed2*cos(initialVelocityDirection2*Degree_To_Radian), initialSpeed2*sin(initialVelocityDirection2*Degree_To_Radian)));
 			remanents.push_back(a1);
 			remanents.push_back(a2);
 		}
 		if (size == AsteroidSize::Medium) {
-			Asteroid a1(Asteroid_Small_Radius, AsteroidSize::Small), a2(Asteroid_Small_Radius, AsteroidSize::Small);
+			shared_ptr<Asteroid> a1 = make_shared<Asteroid>(Asteroid_Small_Radius, AsteroidSize::Small), a2 = make_shared<Asteroid>(Asteroid_Small_Radius, AsteroidSize::Small);
 			float spawnAngle = rand() % 180;
 			float spawnXOffset = cos(spawnAngle*Degree_To_Radian)*(Asteroid_Medium_Radius - Asteroid_Small_Radius), spawnYOffset = sin(spawnAngle*Degree_To_Radian)*(Asteroid_Medium_Radius - Asteroid_Small_Radius);
-			a1.setPosition(getPosition().x + spawnXOffset, getPosition().y + spawnYOffset);
-			a2.setPosition(getPosition().x - spawnXOffset, getPosition().y - spawnYOffset);
+			a1->setPosition(getPosition().x + spawnXOffset, getPosition().y + spawnYOffset);
+			a2->setPosition(getPosition().x - spawnXOffset, getPosition().y - spawnYOffset);
 			float initialVelocityDirection1 = rand() % Asteroid_Spawn_Initial_Angle_Range - Asteroid_Spawn_Initial_Angle_Range + spawnAngle, initialVelocityDirection2 = rand() % Asteroid_Spawn_Initial_Angle_Range - Asteroid_Spawn_Initial_Angle_Range - spawnAngle;
 			float initialSpeed1 = rand() % (Asteroid_Maximum_Speed - Asteroid_Minimum_Speed) + Asteroid_Minimum_Speed, initialSpeed2 = rand() % (Asteroid_Maximum_Speed - Asteroid_Minimum_Speed) + Asteroid_Minimum_Speed;
-			a1.setVelocity(Vector2f(initialSpeed1*cos(initialVelocityDirection1*Degree_To_Radian), initialSpeed1*sin(initialVelocityDirection1*Degree_To_Radian)));
-			a2.setVelocity(Vector2f(initialSpeed2*cos(initialVelocityDirection2*Degree_To_Radian), initialSpeed2*sin(initialVelocityDirection2*Degree_To_Radian)));
+			a1->setVelocity(Vector2f(initialSpeed1*cos(initialVelocityDirection1*Degree_To_Radian), initialSpeed1*sin(initialVelocityDirection1*Degree_To_Radian)));
+			a2->setVelocity(Vector2f(initialSpeed2*cos(initialVelocityDirection2*Degree_To_Radian), initialSpeed2*sin(initialVelocityDirection2*Degree_To_Radian)));
 			remanents.push_back(a1);
 			remanents.push_back(a2);
 		}
+		isSplit = false;
 	}	
 	return remanents;
 }
@@ -183,6 +187,8 @@ void Asteroid::explode() {
 				isHit = false;
 				isDestroyed = true;
 			}
+			if (explosionTextureX == Asteroid_Split_Frame_X&&explosionTextureY == Asteroid_Split_Frame_Y)
+				isSplit = true;
 		}
 //	}
 }

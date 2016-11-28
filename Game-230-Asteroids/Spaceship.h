@@ -47,14 +47,14 @@ public:
 		flame.rotate(direction);
 		explosionTexture.loadFromFile(Spaceship_Explosion_Texture);
 		explosion.setTexture(&explosionTexture);
-		explosion.setTextureRect(IntRect(0, 0, 256, 256));
+		explosion.setTextureRect(IntRect(0, 0, Spaceship_Explosion_Frame_Width, Spaceship_Explosion_Frame_Height));
 		explosion.setOrigin(explosion.getSize().x/2, explosion.getSize().y / 2);
 		explosion.setPosition(getPosition());
 		GunShot::loadTexture();
-		for (int i = 0; i < Gun_Shot_Number; ++i) {
-			shared_ptr<GunShot> gunshot = make_shared<GunShot>(Gun_Shot_Size,Gun_Shot_Speed);
-			gunShots.push_back(gunshot);
-		}
+	//	for (int i = 0; i < Gun_Shot_Number; ++i) {
+	//		shared_ptr<GunShot> gunshot = make_shared<GunShot>(Gun_Shot_Size,Gun_Shot_Speed);
+	//		gunShots.push_back(gunshot);
+	//	}
 	}
 
 	void setPosition(float x,float y);
@@ -169,7 +169,7 @@ void Spaceship::explode() {
 		}
 		else {
 			explosionCounter = 0;
-			explosion.setTextureRect(IntRect(explosionTextureX * 256, explosionTextureY * 256, 256, 256));
+			explosion.setTextureRect(IntRect(explosionTextureX * Spaceship_Explosion_Frame_Width, explosionTextureY * Spaceship_Explosion_Frame_Height, Spaceship_Explosion_Frame_Width, Spaceship_Explosion_Frame_Height));
 			++explosionTextureX;
 			if (explosionTextureX >= Explosion_Texture_Column_Number) {
 				++explosionTextureY;
@@ -189,19 +189,28 @@ void Spaceship::fire() {
 	}
 	else {
 		firingCounter = 0;
-		shared_ptr<GunShot> g = gunShots[0];
+		//shared_ptr<GunShot> g = gunShots[0];
+		shared_ptr<GunShot> g = make_shared<GunShot>(Gun_Shot_Size, Gun_Shot_Speed);
 		g->setFired(true);
 		g->setPosition(getPosition());
 		g->setDirection(direction);
-		gunShots.erase(gunShots.begin());
+		//gunShots.erase(gunShots.begin());
 		gunShots.push_back(g);
 	}
 }
 
 void Spaceship::recycleGunShots(FloatRect r) {
-	for (shared_ptr<GunShot> g : gunShots) {
-		if (g->getFired() && !r.intersects(g->getGlobalBounds()))
-			g->setFired(false);
+//	for (shared_ptr<GunShot> g : gunShots) {
+//		if (g->getFired() && !r.intersects(g->getGlobalBounds()))
+//			g->setFired(false);
+//	}
+	int i = 0;
+	while (i < gunShots.size()) {
+		if (!gunShots[i]->getFired()||!r.intersects(gunShots[i]->getGlobalBounds())) {
+			gunShots.erase(gunShots.begin() + i);
+		}
+		else
+			++i;
 	}
 }
 
