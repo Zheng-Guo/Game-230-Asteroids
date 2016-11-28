@@ -13,10 +13,12 @@ private:
 	int score;
 	int invincibilityCounter;
 	bool isInvincible,isVisible;
+	bool missileEquipped;
 public:
 	Player():isInvincible(false),
 	isVisible(true),
-	invincibilityCounter(0){
+	invincibilityCounter(0),
+	missileEquipped(false){
 		spaceship = make_shared<Spaceship>(Spaceship_Size, 90, Spaceship_Thrust, Spaceship_Full_Speed, Spaceship_Angular_Speed);
 		spaceship->setSpaceshipTexture(Spaceship_Texture);
 		spaceship->setSpaceshipFlameTexture(Spaceship_Engine_Flame_Texture);
@@ -49,6 +51,9 @@ public:
 	void fireFun() { spaceship->fire(); }
 	void resetSpaceshipEngineSound() { spaceship->resetEngineSound(); }
 	void addLife() { lives++; }
+	void setMissileEquipped(bool b) { missileEquipped = b; }
+	bool getMissileEquipped() { return missileEquipped; }
+	void fireMissile();
 };
 
 void Player::loseLife() {

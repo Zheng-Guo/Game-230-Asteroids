@@ -46,6 +46,8 @@ private:
 	vector<RectangleShape> displayedBlackCurtains;
 	SoundBuffer levelClearSoundBuffer;
 	Sound levelClearSound;
+	Texture missileSymbleTexture;
+	RectangleShape missileSymble;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
@@ -62,7 +64,8 @@ public:
 	levelClear(false),
 	gameOver(false),
 	levelEndCounter(0),
-	view(FloatRect(Level_Initial_View_X,Level_Initial_View_Y,Level_Initial_View_Width,Level_Initial_View_Height)) {
+	view(FloatRect(Level_Initial_View_X,Level_Initial_View_Y,Level_Initial_View_Width,Level_Initial_View_Height)),
+	missileSymble(Vector2f(Missile_Symble_Width,Missile_Symble_Height)){
 		player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
 		player.setLives(3);
 		player.setScore(0);
@@ -103,6 +106,10 @@ public:
 		levelClearSoundBuffer.loadFromFile(Level_Clear_Sound);
 		levelClearSound.setBuffer(levelClearSoundBuffer);
 		PowerUp::loadTextures();
+		missileSymbleTexture.loadFromFile(Missile_Texture);
+		missileSymble.setTexture(&missileSymbleTexture);
+		missileSymble.setPosition(Missile_Symble_X, Missile_Symble_Y);
+		player.setMissileEquipped(true);
 		view.setRotation(90);
 		srand(time(NULL));
 	}
@@ -598,7 +605,9 @@ void Level::render(RenderWindow &window) {
 	if (!startingGame) {
 		window.draw(lives);
 		window.draw(score);
-	}
+		if (player.getMissileEquipped())
+			window.draw(missileSymble);
+	}	
 	if (levelClear || gameOver) {
 		window.draw(gameEndMessage);
 		window.draw(gameEndInstruction);
