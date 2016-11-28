@@ -14,6 +14,7 @@
 #include "Asteroid.h"
 #include "Background.h"
 #include "Player.h"
+#include "PowerUp.h"
 
 using namespace sf;
 using namespace std;
@@ -26,6 +27,7 @@ private:
 	vector<shared_ptr<Asteroid>> spawnedAsteroids;
 	vector<shared_ptr<Asteroid>> bucketGrid[Bucket_Grid_Row_Number][Bucket_Grid_Column_Number];
 	map<shared_ptr<Asteroid>,vector<pair<int,int>>> bucketAllocations;
+	vector<PowerUp> powerUps;
 	int asteroidNumberIncrement;
 	int asteroidSpawningCounter;	
 	Font font;
@@ -100,6 +102,7 @@ public:
 		}
 		levelClearSoundBuffer.loadFromFile(Level_Clear_Sound);
 		levelClearSound.setBuffer(levelClearSoundBuffer);
+		PowerUp::loadTextures();
 		view.setRotation(90);
 		srand(time(NULL));
 	}
@@ -409,11 +412,24 @@ Interface Level::processAction() {
 			for (shared_ptr<Asteroid> a : childAsteroids)
 				spawnedAsteroids.push_back(a);
 		}
-		if (spawnedAsteroids[i]->getIsDestroyed()) {		
+		if (spawnedAsteroids[i]->getIsDestroyed()) {					
+			int r = rand() % Power_Up_Spawn_Probability;
+			switch (r) {
+			case Power_Up_Spawn_Life_Pack:PowerUp p(Power_Up_Size, PowerUpType::LifePack); p.setPosition(spawnedAsteroids[i]->getPosition()); powerUps.push_back(p); break;
+			}
 			spawnedAsteroids.erase(spawnedAsteroids.begin() + i);
 		}
 		else
 			++i;
+	}
+	i = 0;
+	while (i < powerUps.size()) {
+		if (powerUps[i].getExpired())
+			powerUps.erase(powerUps.begin() + i);
+		else {
+			powerUps[i].expiring();
+			++i;
+		}
 	}
 	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0&&!levelClear) {
 		levelClearSound.play();
@@ -553,8 +569,11 @@ void Level::render(RenderWindow &window) {
 	for (shared_ptr<Asteroid> a : spawnedAsteroids) {
 		if (a->getIsHit()&&!a->getIsDestroyed())
 			window.draw(a->getExplosion());
+	}		
+	for (PowerUp p : powerUps) {
+		if(p.getVisible())
+			window.draw(p);
 	}
-		
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 		if (g->getFired())
 			window.draw(*g);
@@ -603,6 +622,7 @@ void Level::resetLevel() {
 	levelEndCounter = 0;
 	blackCurtains.insert(blackCurtains.begin(), displayedBlackCurtains.begin(), displayedBlackCurtains.end());
 	displayedBlackCurtains.clear();
+	powerUps.clear();
 }
 
 void Level::nextLevel() {
@@ -627,4 +647,5 @@ void Level::nextLevel() {
 	levelEndCounter = 0;
 	blackCurtains.insert(blackCurtains.begin(), displayedBlackCurtains.begin(), displayedBlackCurtains.end());
 	displayedBlackCurtains.clear();
+	powerUps.clear();
 }

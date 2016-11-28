@@ -8,6 +8,7 @@
 #include "Player.h"
 
 using namespace sf;
+using namespace std;
 
 class GunShot:public CircleShape {
 private:
