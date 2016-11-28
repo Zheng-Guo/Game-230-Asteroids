@@ -23,7 +23,7 @@ private:
 	int navigationCounter;
 public:
 	Missile(float r = 0, float t = 0,float s=0,float a=0) :CircleShape(r),
-	flame(Vector2f()),
+	flame(Vector2f(Missile_Flame_Width,Missile_Flame_Height)),
 	thrust(t),
 	fullSpeed(s),
 	maximumAngularSpeed(a),
@@ -33,20 +33,23 @@ public:
 		setOrigin(r, r);
 		setTexture(&texture);
 		flame.setTexture(&flameTexture);
+		flame.setOrigin(-r,Missile_Flame_Height/2);
 	}
 	static void loadTexture();
 	void setDirection(float r);
+	void setPosition(Vector2f v) { CircleShape::setPosition(v); flame.setPosition(v); }
 	void setFired(bool t) { fired = t; }
 	bool getFired() { return fired; }
 	void setPredefinedTarget(shared_ptr<Asteroid> a) { predefinedTarget = a; }
 	void navigate();
 	void moveForward();
-	void move() { CircleShape::move(velocity); }
-	void shift(Vector2f v) { CircleShape::move(v); }
+	void move() { CircleShape::move(velocity); flame.move(velocity); }
+	void shift(Vector2f v) { CircleShape::move(v); flame.move(v); }
 	bool withinVisibleArea(FloatRect r) { return r.intersects(getGlobalBounds()); }
 	int hitTarget(shared_ptr<Asteroid>a);
 	DamageType getDamageType() { return damageType; }
 	shared_ptr<Asteroid> target(set<shared_ptr<Asteroid>> allTargets);
+	RectangleShape getFlame() { return flame; }
 };
 
 Texture Missile::texture;
@@ -60,6 +63,7 @@ void Missile::loadTexture() {
 void Missile::setDirection(float r) {
 	direction = r;
 	setRotation(r);
+	flame.setRotation(r);
 }
 
 shared_ptr<Asteroid> Missile::target(set<shared_ptr<Asteroid>> allTargets) {

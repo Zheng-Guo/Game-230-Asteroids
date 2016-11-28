@@ -459,6 +459,7 @@ Interface Level::processAction() {
 		gameEndInstruction.setString("Please restart the game");
 	}
 	player.getSpaceship()->recycleGunShots(spawnBound);
+	player.getSpaceship()->recycleMissiles(spawnBound);
 	FloatRect visibleArea(0, 0, Window_Width, Window_Height);
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots()) {
 		if (visibleArea.intersects(g->getGlobalBounds())) {
@@ -495,6 +496,8 @@ Interface Level::processAction() {
 				a->shiftPosition(shift);
 			for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 				g->shift(shift);
+			for (shared_ptr<Missile> m : player.getSpaceship()->getMissiles())
+				m->shift(shift);
 			for (int i=0;i<powerUps.size();++i)
 				powerUps[i].shift(shift);
 		}
@@ -605,8 +608,10 @@ void Level::render(RenderWindow &window) {
 		if (g->getFired())
 			window.draw(*g);
 	for (shared_ptr<Missile> m : player.getSpaceship()->getMissiles())
-		if (m->getFired())
+		if (m->getFired()) {
 			window.draw(*m);
+			window.draw(m->getFlame());
+		}
 	if (!player.isGameOver()&&!player.isSpaceshipHit()) {
 		if (player.isSpaceshipVisible()) {
 			if (playerForward)

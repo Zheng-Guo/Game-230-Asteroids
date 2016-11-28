@@ -166,7 +166,7 @@ vector<shared_ptr<Asteroid>> Asteroid::damage(DamageType d) {
 		if (size == AsteroidSize::Large) {
 			shared_ptr<Asteroid> a1=make_shared<Asteroid>(Asteroid_Medium_Radius, AsteroidSize::Medium), a2 = make_shared<Asteroid>(Asteroid_Medium_Radius, AsteroidSize::Medium);
 			float spawnAngle = rand() % 180;
-			float spawnXOffset = cos(spawnAngle*Degree_To_Radian)*(Asteroid_Large_Radius - Asteroid_Medium_Radius), spawnYOffset = sin(spawnAngle*Degree_To_Radian)*(Asteroid_Large_Radius - Asteroid_Medium_Radius);
+			float spawnXOffset = cos(spawnAngle*Degree_To_Radian)*(Asteroid_Large_Radius - Asteroid_Medium_Radius+30), spawnYOffset = sin(spawnAngle*Degree_To_Radian)*(Asteroid_Large_Radius - Asteroid_Medium_Radius+30);
 			a1->setPosition(getPosition().x+spawnXOffset,getPosition().y+spawnYOffset);
 			a2->setPosition(getPosition().x - spawnXOffset, getPosition().y - spawnYOffset);
 			float initialVelocityDirection1 = rand() % Asteroid_Spawn_Initial_Angle_Range - Asteroid_Spawn_Initial_Angle_Range + spawnAngle, initialVelocityDirection2 = rand() % Asteroid_Spawn_Initial_Angle_Range - Asteroid_Spawn_Initial_Angle_Range - spawnAngle;
@@ -179,7 +179,7 @@ vector<shared_ptr<Asteroid>> Asteroid::damage(DamageType d) {
 		if (size == AsteroidSize::Medium) {
 			shared_ptr<Asteroid> a1 = make_shared<Asteroid>(Asteroid_Small_Radius, AsteroidSize::Small), a2 = make_shared<Asteroid>(Asteroid_Small_Radius, AsteroidSize::Small);
 			float spawnAngle = rand() % 180;
-			float spawnXOffset = cos(spawnAngle*Degree_To_Radian)*(Asteroid_Medium_Radius - Asteroid_Small_Radius), spawnYOffset = sin(spawnAngle*Degree_To_Radian)*(Asteroid_Medium_Radius - Asteroid_Small_Radius);
+			float spawnXOffset = cos(spawnAngle*Degree_To_Radian)*(Asteroid_Medium_Radius - Asteroid_Small_Radius+30), spawnYOffset = sin(spawnAngle*Degree_To_Radian)*(Asteroid_Medium_Radius - Asteroid_Small_Radius+30);
 			a1->setPosition(getPosition().x + spawnXOffset, getPosition().y + spawnYOffset);
 			a2->setPosition(getPosition().x - spawnXOffset, getPosition().y - spawnYOffset);
 			float initialVelocityDirection1 = rand() % Asteroid_Spawn_Initial_Angle_Range - Asteroid_Spawn_Initial_Angle_Range + spawnAngle, initialVelocityDirection2 = rand() % Asteroid_Spawn_Initial_Angle_Range - Asteroid_Spawn_Initial_Angle_Range - spawnAngle;

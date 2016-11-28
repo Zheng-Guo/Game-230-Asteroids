@@ -243,20 +243,22 @@ void Spaceship::recycleGunShots(FloatRect r) {
 	}
 }
 
+void Spaceship::recycleMissiles(FloatRect r) {
+	int i = 0;
+	while (i < missiles.size()) {
+		if (!r.intersects(missiles[i]->getGlobalBounds())) {
+			missiles.erase(missiles.begin() + i);
+		}
+		else
+			++i;
+	}
+}
+
 void Spaceship::prepareMissiles() {
 	missileLaunched = true;
 	nextMissileToBeLaunched = 0;
-	Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
-	Matrix reverseRotationMatrix(cos(-direction*Degree_To_Radian), sin(-direction*Degree_To_Radian), -sin(-direction*Degree_To_Radian), cos(-direction*Degree_To_Radian));
-	Vector2f positionInLocalCoordinates = rotationMatrix*getPosition();
 	for (int i = 0; i < Missile_Number; ++i) {
 		shared_ptr<Missile> missile = make_shared<Missile>(Missile_Size, Missile_Thrust, Missile_Maximum_Speed, Missile_Maximum_Angular_Speed);
-		if (i % 2 == 0)
-			missile->setDirection(direction - 90);
-		else
-			missile->setDirection(direction + 90);
-		Vector2f positionInWorldCoordinates = reverseRotationMatrix*Vector2f(positionInLocalCoordinates.x + (i % 5)*Missile_Separation, positionInLocalCoordinates.y);
-		missile->setPosition(positionInWorldCoordinates);
 		missiles.push_back(missile);
 	}
 }
@@ -266,7 +268,17 @@ void Spaceship::launchMissiles() {
 		launchingCounter++;
 	else {
 		launchingCounter = 0;
+		missiles[nextMissileToBeLaunched]->setPosition(getPosition());
+		if (nextMissileToBeLaunched % 2 == 0)
+			missiles[nextMissileToBeLaunched]->setDirection(direction - 90);
+		else
+			missiles[nextMissileToBeLaunched]->setDirection(direction + 90);
 		missiles[nextMissileToBeLaunched++]->setFired(true);
+		missiles[nextMissileToBeLaunched]->setPosition(getPosition());
+		if (nextMissileToBeLaunched % 2 == 0)
+			missiles[nextMissileToBeLaunched]->setDirection(direction - 90);
+		else
+			missiles[nextMissileToBeLaunched]->setDirection(direction + 90);
 		missiles[nextMissileToBeLaunched++]->setFired(true);
 		if (nextMissileToBeLaunched>=Missile_Number)
 			missileLaunched = false;
