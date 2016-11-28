@@ -33,6 +33,7 @@ public:
 	void setLives(int l) { lives = l; }
 	int getLives() { return lives; }
 	void loseLife();
+	void addScore(int s) { score += s; }
 	void setScore(int s) { score = s; }
 	int getScore() { return score; }
 	void act();

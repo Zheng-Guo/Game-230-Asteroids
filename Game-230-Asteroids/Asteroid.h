@@ -15,6 +15,7 @@ private:
 	static Texture textures[];
 	AsteroidSize size;
 	int mass;
+	int score;
 	Vector2f velocity;
 	float angularVelocity;
 	set<shared_ptr<Asteroid>> previouslyCollidedAsteroids;
@@ -45,9 +46,9 @@ public:
 		angularVelocity=rand() % (Asteroid_Maximum_Angular_Velocity - Asteroid_Minimum_Angular_Velocity) + Asteroid_Minimum_Angular_Velocity;
 		angularVelocity *= (rand() % 2 == 0) ? -1 : 1;
 		switch (s) {
-		case AsteroidSize::Small:setTexture(&textures[0]); mass = Asteroid_Mass_Small; break;
-		case AsteroidSize::Medium:setTexture(&textures[1]); mass = Asteroid_Mass_Medium; break;
-		case AsteroidSize::Large:setTexture(&textures[2]); mass = Asteroid_Mass_Large; break;
+		case AsteroidSize::Small:setTexture(&textures[0]); mass = Asteroid_Mass_Small; score = Asteroid_Full_Score / 8; break;
+		case AsteroidSize::Medium:setTexture(&textures[1]); mass = Asteroid_Mass_Medium; score = Asteroid_Full_Score / 4; break;
+		case AsteroidSize::Large:setTexture(&textures[2]); mass = Asteroid_Mass_Large; score = Asteroid_Full_Score; break;
 		}
 		explosion.setTexture(&explosionTexture);
 		explosion.setTextureRect(IntRect(0, 0, Asteroid_Explosion_Frame_Width, Asteroid_Explosion_Frame_Height));
@@ -63,10 +64,11 @@ public:
 	bool getIsDestroyed() { return isDestroyed; }
 	bool getIsSplit() { return isSplit; }
 	int getMass() { return mass; }
+	int getScore(DamageType d);
 	void move() { CircleShape::move(velocity); rotate(angularVelocity); explosion.move(velocity); }
 	void shiftPosition(Vector2f v) { CircleShape::move(v); explosion.move(v); }
 	Vector2f newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids);
-	vector<shared_ptr<Asteroid>>damage(int d);
+	vector<shared_ptr<Asteroid>>damage(DamageType d);
 	RectangleShape getExplosion() { return explosion; }
 	void explode();
 	static void loadTextures();
@@ -135,9 +137,19 @@ Vector2f Asteroid::newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids) {
 		return velocity;
 }
 
-vector<shared_ptr<Asteroid>> Asteroid::damage(int d) {
+int Asteroid::getScore(DamageType d) {
+	if (d == DamageType::Split) {
+		if (size == AsteroidSize::Large|| size == AsteroidSize::Medium)
+			return score / 2;
+		else return score;
+	}
+	else
+		return score;
+}
+
+vector<shared_ptr<Asteroid>> Asteroid::damage(DamageType d) {
 	vector<shared_ptr<Asteroid>> remanents;
-	if (d == 0) {
+	if (d == DamageType::Split) {
 		if (size == AsteroidSize::Large) {
 			shared_ptr<Asteroid> a1=make_shared<Asteroid>(Asteroid_Medium_Radius, AsteroidSize::Medium), a2 = make_shared<Asteroid>(Asteroid_Medium_Radius, AsteroidSize::Medium);
 			float spawnAngle = rand() % 180;

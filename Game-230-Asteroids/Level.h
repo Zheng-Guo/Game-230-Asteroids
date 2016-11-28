@@ -344,7 +344,6 @@ Interface Level::processEvent(Event event) {
 	if (Keyboard::isKeyPressed(Keyboard::Right) && !startingGame)
 		playerRight = true;
 	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
-		//resetLevel();
 		return Interface::MenuInterface;
 	}
 	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame && !player.isSpaceshipHit()&&!player.getIsInvincible())
@@ -370,7 +369,7 @@ Interface Level::processAction() {
 	int i = 0;
 	while (i < spawnedAsteroids.size()) {
 		if (spawnedAsteroids[i]->getIsSplit()) {
-			vector<shared_ptr<Asteroid>> childAsteroids = spawnedAsteroids[i]->damage(0);
+			vector<shared_ptr<Asteroid>> childAsteroids = spawnedAsteroids[i]->damage(DamageType::Split);
 			for (shared_ptr<Asteroid> a : childAsteroids)
 				spawnedAsteroids.push_back(a);
 		}
@@ -387,10 +386,10 @@ Interface Level::processAction() {
 			shared_ptr<Asteroid> target = g->target(getTargetAsteroids(g));
 			if (target != nullptr) {
 				g->setFired(false);
-				g->hitTarget(target);
-			//	vector<shared_ptr<Asteroid>> childAsteroids = target->damage(0);
-			//	for (shared_ptr<Asteroid> a : childAsteroids)
-			//		spawnedAsteroids.push_back(a);
+				player.addScore(g->hitTarget(target));
+				ostringstream ss;
+				ss << "Score: " << player.getScore();
+				score.setString(ss.str());
 			}				
 		}
 	}
@@ -436,21 +435,6 @@ Interface Level::processAction() {
 		ss << "Life: " << player.getLives();
 		lives.setString(ss.str());
 	}
-	/*
-	for (int i = 0; i < 7; i++) {
-		for (int j = 0; j < 7; j++) {
-			cout << "(" << i << "," << j << "):";
-			for (auto a : bucketGrid[i][j])
-				cout << "[" << a->getPosition().x << "," << a->getPosition().y << "] ";
-		}
-		cout << endl;
-	}
-	for (auto a : bucketAllocations) {
-		cout << "(" << a.first->getPosition().x << "," << a.first->getPosition().y << "): ";
-		for (auto b : a.second)
-			cout << "[" << b.first << "," << b.second << "]";
-		cout << endl;
-	}*/
 	map<shared_ptr<Asteroid>,Vector2f> newVelocities;
 	for (int i = 0; i < spawnedAsteroids.size()&&i<bucketAllocations.size();i++) {
 		if (!spawnedAsteroids[i]->getIsHit()&&bucketAllocations.find(spawnedAsteroids[i]) != bucketAllocations.end()) {

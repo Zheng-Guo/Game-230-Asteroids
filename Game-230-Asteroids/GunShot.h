@@ -13,12 +13,14 @@ class GunShot:public CircleShape {
 private:
 	static Texture texture;
 	float speed;
+	DamageType damageType;
 	Vector2f velocity;
 	bool fired;
 public:
 	GunShot(float size=0,float s=0) :CircleShape(size),
 	speed(s),
-	fired(false){
+	fired(false),
+	damageType(DamageType::Split){
 		setOrigin(size, size);
 		setTexture(&texture);
 	}
@@ -30,6 +32,7 @@ public:
 	void shift(Vector2f v) { CircleShape::move(v); }
 	bool withinVisibleArea(FloatRect r) { return r.intersects(getGlobalBounds()); }
 	int hitTarget(shared_ptr<Asteroid>a);
+	DamageType getDamageType() { return damageType; }
 	shared_ptr<Asteroid> target(set<shared_ptr<Asteroid>> allTargets);
 };
 
@@ -67,5 +70,5 @@ shared_ptr<Asteroid> GunShot::target(set<shared_ptr<Asteroid>> allTargets) {
 
 int GunShot::hitTarget(shared_ptr<Asteroid> a) {
 	a->setIsHit(true);
-	return 0;
+	return a->getScore(damageType);
 }

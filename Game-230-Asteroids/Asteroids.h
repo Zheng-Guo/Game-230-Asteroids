@@ -20,7 +20,6 @@ private:
 	Clock clock;
 	Time time1, time2, time3;
 	Interface currentInterface;
-	Vertex horizontalVertices[8][2], verticalVertices[8][2];
 public:
 	Asteroids() : window(VideoMode(Window_Width, Window_Height), "Asteroids", Style::Close | Style::Titlebar),
 	currentInterface(Interface::MenuInterface){
@@ -30,12 +29,6 @@ public:
 		//window.setView(v);
 		level.setDisplayWindow(FloatRect(0, 0, Window_Width, Window_Height));
 		srand(time(NULL));
-		for (int i = -1; i < 7; i++) {
-			horizontalVertices[i][0].position = Vector2f(-200, i * 200);
-			horizontalVertices[i][1].position = Vector2f(1200, i * 200);
-			verticalVertices[i][0].position = Vector2f(i * 200, -200);
-			verticalVertices[i][1].position = Vector2f(i * 200, 1200);
-		}
 	}
 	void startGame();
 };

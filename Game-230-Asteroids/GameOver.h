@@ -14,7 +14,6 @@ private:
 	Font font;
 	Text score;
 	Text instruction;
-	int playerScore;
 public:
 	GameOver() :background(Vector2f(Window_Width, Window_Height)),
 		foreground(Vector2f(Window_Width, Window_Height)){
@@ -23,9 +22,6 @@ public:
 		background.setTexture(&backgroundTexture);
 		foreground.setTexture(&foregroundTexture);
 		font.loadFromFile("Tinos-Regular.ttf");
-		ostringstream ss;
-		ss << "Final Score: " << playerScore;
-		score.setString(ss.str());
 		score.setFont(font);
 		score.setCharacterSize(Game_Over_Score_Character_Size);
 		score.setFillColor(Color::Yellow);
@@ -36,10 +32,16 @@ public:
 		instruction.setFillColor(Color::Yellow);
 		instruction.setPosition(Menu_Instruction_X, Menu_Instruction_Y);
 	}
-	void setScore(int s) { playerScore = s; }
+	void setScore(int s);
 	Interface processEvent(Event event);
 	void render(RenderWindow &window);
 };
+
+void GameOver::setScore(int s) {
+	ostringstream ss;
+	ss << "Final Score: " << s;
+	score.setString(ss.str());
+}
 
 Interface GameOver::processEvent(Event event) {
 	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
