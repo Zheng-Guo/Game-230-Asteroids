@@ -392,6 +392,8 @@ Interface Level::processEvent(Event event) {
 	}
 	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame && !player.isSpaceshipHit()&&!player.getIsInvincible() && !levelClear)
 		fireGun = true;
+	if (Keyboard::isKeyPressed(Keyboard::M) && !startingGame && !player.isSpaceshipHit() && !player.getIsInvincible() && !levelClear)
+		player.launchMissile();
 	return Interface::LevelInterface;
 }
 
@@ -470,9 +472,19 @@ Interface Level::processAction() {
 			}				
 		}
 	}
+	if (player.getSpaceship()->getMissileLaunched()) {
+		player.getSpaceship()->launchMissiles();
+	}
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 		if(g->getFired())
 			g->move();
+	for (shared_ptr<Missile> m : player.getSpaceship()->getMissiles()) {
+		if (m->getFired()) {
+			m->navigate();
+			m->moveForward();
+			m->move();
+		}
+	}
 	if (!player.isSpaceshipHit()&&!levelClear&&!gameOver) {
 		player.act();
 		if (!background.isWithinInnerBound(*player.getSpaceship())) {
@@ -592,6 +604,9 @@ void Level::render(RenderWindow &window) {
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 		if (g->getFired())
 			window.draw(*g);
+	for (shared_ptr<Missile> m : player.getSpaceship()->getMissiles())
+		if (m->getFired())
+			window.draw(*m);
 	if (!player.isGameOver()&&!player.isSpaceshipHit()) {
 		if (player.isSpaceshipVisible()) {
 			if (playerForward)

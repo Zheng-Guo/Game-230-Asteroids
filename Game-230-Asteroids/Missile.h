@@ -13,7 +13,8 @@ private:
 	static Texture texture;
 	static Texture flameTexture;
 	RectangleShape flame;
-	float speed;
+	float thrust, fullSpeed;
+	float maximumAngularSpeed;
 	DamageType damageType;
 	Vector2f velocity;
 	bool fired;
@@ -21,20 +22,25 @@ private:
 	shared_ptr<Asteroid> predefinedTarget;
 	int navigationCounter;
 public:
-	Missile(float r = 0, float s = 0) :CircleShape(r),
+	Missile(float r = 0, float t = 0,float s=0,float a=0) :CircleShape(r),
 	flame(Vector2f()),
-	speed(s),
+	thrust(t),
+	fullSpeed(s),
+	maximumAngularSpeed(a),
 	damageType(DamageType::Annihilate),
 	fired(false),
 	navigationCounter(0){
 		setOrigin(r, r);
 		setTexture(&texture);
+		flame.setTexture(&flameTexture);
 	}
 	static void loadTexture();
 	void setDirection(float r);
 	void setFired(bool t) { fired = t; }
 	bool getFired() { return fired; }
 	void setPredefinedTarget(shared_ptr<Asteroid> a) { predefinedTarget = a; }
+	void navigate();
+	void moveForward();
 	void move() { CircleShape::move(velocity); }
 	void shift(Vector2f v) { CircleShape::move(v); }
 	bool withinVisibleArea(FloatRect r) { return r.intersects(getGlobalBounds()); }
@@ -53,6 +59,7 @@ void Missile::loadTexture() {
 
 void Missile::setDirection(float r) {
 	direction = r;
+	setRotation(r);
 }
 
 shared_ptr<Asteroid> Missile::target(set<shared_ptr<Asteroid>> allTargets) {
@@ -84,4 +91,21 @@ shared_ptr<Asteroid> Missile::target(set<shared_ptr<Asteroid>> allTargets) {
 int Missile::hitTarget(shared_ptr<Asteroid> a) {
 	a->setIsHit(true);
 	return a->getScore(damageType);
+}
+
+void Missile::navigate() {
+	if (navigationCounter < Missile_Navigation_Preparation_Duration)
+		++navigationCounter;
+	else {
+
+	}
+}
+
+void Missile::moveForward() {
+	Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
+	Vector2f velocityInLocalCoordinates = rotationMatrix*velocity;
+	float xSpeed = velocityInLocalCoordinates.x + thrust > fullSpeed ? velocityInLocalCoordinates.x + thrust : fullSpeed;
+	Vector2f newVelocityInLocalCoordinates(xSpeed, velocityInLocalCoordinates.y);
+	Matrix reverseRotationMatrix(cos(-direction*Degree_To_Radian), sin(-direction*Degree_To_Radian), -sin(-direction*Degree_To_Radian), cos(-direction*Degree_To_Radian));
+	velocity = reverseRotationMatrix*newVelocityInLocalCoordinates;
 }

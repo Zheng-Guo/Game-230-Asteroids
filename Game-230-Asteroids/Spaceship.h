@@ -6,6 +6,7 @@
 #include "GameConstants.h"
 #include "Matrix.h"
 #include "GunShot.h"
+#include "Missile.h"
 
 using namespace sf;
 using namespace std;
@@ -33,8 +34,12 @@ private:
 	Vector2f velocity;
 	bool isHit;
 	bool fireGun;
+	bool missileLaunched;
+	int nextMissileToBeLaunched;
 	vector<shared_ptr<GunShot>> gunShots;
+	vector<shared_ptr<Missile>> missiles;
 	int firingCounter;
+	int launchingCounter;
 	void playEngineSound();
 public:
 	Spaceship(float size,float direction,float thrust,float fullSpeed,float angularSpeed):CircleShape(size),
@@ -50,6 +55,8 @@ public:
 	isHit(false),
 	fireGun(false),
 	firingCounter(0),
+	missileLaunched(false),
+	launchingCounter(0),
 	engineSoundCounter(0){
 		setOrigin(size, size);
 		rotate(direction);
@@ -69,6 +76,7 @@ public:
 		gunSound.setVolume(50);
 		engineSound.setVolume(50);
 		explosionSound.setVolume(50);
+		Missile::loadTexture();
 	}
 
 	void setPosition(float x,float y);
@@ -96,6 +104,12 @@ public:
 	vector<shared_ptr<GunShot>> getGunShots() { return gunShots; }
 	void fire();
 	void recycleGunShots(FloatRect r);
+	vector<shared_ptr<Missile>> getMissiles() { return missiles; }
+	void prepareMissiles();
+	void launchMissiles();
+	void recycleMissiles(FloatRect r);
+	void setMissileLaunched(bool b) { missileLaunched = b; }
+	bool getMissileLaunched() { return missileLaunched; }
 	void reset();
 	void resetEngineSound() { engineSoundCounter = 0; }
 };
@@ -226,6 +240,36 @@ void Spaceship::recycleGunShots(FloatRect r) {
 		}
 		else
 			++i;
+	}
+}
+
+void Spaceship::prepareMissiles() {
+	missileLaunched = true;
+	nextMissileToBeLaunched = 0;
+	Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
+	Matrix reverseRotationMatrix(cos(-direction*Degree_To_Radian), sin(-direction*Degree_To_Radian), -sin(-direction*Degree_To_Radian), cos(-direction*Degree_To_Radian));
+	Vector2f positionInLocalCoordinates = rotationMatrix*getPosition();
+	for (int i = 0; i < Missile_Number; ++i) {
+		shared_ptr<Missile> missile = make_shared<Missile>(Missile_Size, Missile_Thrust, Missile_Maximum_Speed, Missile_Maximum_Angular_Speed);
+		if (i % 2 == 0)
+			missile->setDirection(direction - 90);
+		else
+			missile->setDirection(direction + 90);
+		Vector2f positionInWorldCoordinates = reverseRotationMatrix*Vector2f(positionInLocalCoordinates.x + (i % 5)*Missile_Separation, positionInLocalCoordinates.y);
+		missile->setPosition(positionInWorldCoordinates);
+		missiles.push_back(missile);
+	}
+}
+
+void Spaceship::launchMissiles() {
+	if (launchingCounter < Missile_Launch_Interval)
+		launchingCounter++;
+	else {
+		launchingCounter = 0;
+		missiles[nextMissileToBeLaunched++]->setFired(true);
+		missiles[nextMissileToBeLaunched++]->setFired(true);
+		if (nextMissileToBeLaunched>=Missile_Number)
+			missileLaunched = false;
 	}
 }
 
