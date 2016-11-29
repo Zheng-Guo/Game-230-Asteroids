@@ -583,6 +583,7 @@ Interface Level::processAction() {
 		lives.setString(ss.str());
 	}
 	map<shared_ptr<Asteroid>,Vector2f> newVelocities;
+	map<shared_ptr<Asteroid>, float> stepBackFactors;
 	for (int i = 0; i < spawnedAsteroids.size()&&i<bucketAllocations.size();i++) {
 		if (!spawnedAsteroids[i]->getIsHit()&&bucketAllocations.find(spawnedAsteroids[i]) != bucketAllocations.end()) {
 			vector<pair<int, int>> bucketAllocation = bucketAllocations[spawnedAsteroids[i]];
@@ -598,7 +599,13 @@ Interface Level::processAction() {
 			else {
 				newVelocities[spawnedAsteroids[i]] = spawnedAsteroids[i]->getVelocity();
 			}			
+			float stepBackFactor = spawnedAsteroids[i]->stepBack(collidibleAsteroids);
+			stepBackFactors[spawnedAsteroids[i]] = stepBackFactor;
 		}
+	}
+	for (auto a : stepBackFactors) {
+		if (!a.first->getIsHit())
+			a.first->shiftPosition(-a.second*a.first->getVelocity());
 	}
 	for (auto a:newVelocities)
 		if(!a.first->getIsHit())

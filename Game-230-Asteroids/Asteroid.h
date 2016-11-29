@@ -75,6 +75,7 @@ public:
 	void move() { CircleShape::move(velocity); rotate(angularVelocity); explosion.move(velocity); }
 	void shiftPosition(Vector2f v) { CircleShape::move(v); explosion.move(v); }
 	Vector2f newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids);
+	float stepBack(set<shared_ptr<Asteroid>> collidibleAsteroids);
 	vector<shared_ptr<Asteroid>>damage();
 	RectangleShape getExplosion() { return explosion; }
 	void explode();
@@ -149,6 +150,50 @@ Vector2f Asteroid::newVelocity(set<shared_ptr<Asteroid>> collidibleAsteroids) {
 		return resultantVelocity;
 	else
 		return velocity;
+}
+
+float Asteroid::stepBack(set<shared_ptr<Asteroid>> collidibleAsteroids) {
+	float finalStepBackFactor = 0;
+	for (shared_ptr<Asteroid> a : collidibleAsteroids) {
+		if (this != a.get() && collideWithAnotherAsteroid(a)) {
+			Vector2f offset = a->getPosition() - getPosition();
+			float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+			float stepBackDistance = a->getRadius() + getRadius() - distance;
+			float deltaX = a->getPosition().x - getPosition().x, deltaY = a->getPosition().y - getPosition().y;
+			float angle;
+			if (deltaX == 0) {
+				if (deltaY > 0)
+					angle = PI / 2;
+				else
+					angle = -PI / 2;
+			}
+			else if (deltaY == 0) {
+				if (deltaX > 0)
+					angle = 0;
+				else
+					angle = PI;
+			}
+			else {
+				angle = atan(deltaY / deltaX);
+				if (deltaX < 0) {
+					if (deltaY > 0)
+						angle += PI;
+					else
+						angle -= PI;
+				}
+			}
+			float stepBackFactor;
+			if (angle == PI / 2 || angle == -PI / 2) {
+				stepBackFactor = stepBackDistance / (a->getVelocity().y + velocity.y);
+			}
+			else {
+				stepBackFactor= stepBackDistance*cos(angle)/ (a->getVelocity().x + velocity.x);
+			}
+			if (stepBackFactor > finalStepBackFactor)
+				finalStepBackFactor = stepBackFactor;
+		}
+	}
+	return finalStepBackFactor;
 }
 
 int Asteroid::getScore(DamageType d) {
