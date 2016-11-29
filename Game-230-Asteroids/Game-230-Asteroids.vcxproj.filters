@@ -59,5 +59,8 @@
     <ClInclude Include="Missile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AIPlayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

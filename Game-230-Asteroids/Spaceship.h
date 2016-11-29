@@ -286,14 +286,18 @@ void Spaceship::launchMissiles() {
 	if (launchingCounter < Missile_Launch_Interval)
 		launchingCounter++;
 	else {
+		Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian)), reverseRotationMatrix(cos(-direction*Degree_To_Radian), sin(-direction*Degree_To_Radian), -sin(-direction*Degree_To_Radian), cos(-direction*Degree_To_Radian));
+		Vector2f spaceshipPositionInLocalCoordinates = rotationMatrix*getPosition();
+		Vector2f missilePositionInLocalCoordinates = Vector2f(spaceshipPositionInLocalCoordinates.x + Missile_Separation*(nextMissileToBeLaunched/2), spaceshipPositionInLocalCoordinates.y);
+		Vector2f missilePositionInWorldCoordinates = reverseRotationMatrix*missilePositionInLocalCoordinates;
 		launchingCounter = 0;
-		missiles[nextMissileToBeLaunched]->setPosition(getPosition());
+		missiles[nextMissileToBeLaunched]->setPosition(missilePositionInWorldCoordinates);
 		if (nextMissileToBeLaunched % 2 == 0)
 			missiles[nextMissileToBeLaunched]->setDirection(direction - 90);
 		else
 			missiles[nextMissileToBeLaunched]->setDirection(direction + 90);
 		missiles[nextMissileToBeLaunched++]->setFired(true);
-		missiles[nextMissileToBeLaunched]->setPosition(getPosition());
+		missiles[nextMissileToBeLaunched]->setPosition(missilePositionInWorldCoordinates);
 		if (nextMissileToBeLaunched % 2 == 0)
 			missiles[nextMissileToBeLaunched]->setDirection(direction - 90);
 		else

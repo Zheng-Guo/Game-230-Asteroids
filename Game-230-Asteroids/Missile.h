@@ -108,7 +108,8 @@ void Missile::navigate() {
 	if (navigationCounter < Missile_Navigation_Preparation_Duration)
 		++navigationCounter;
 	else {
-		if (predefinedTarget != nullptr) {
+		FloatRect visibleBound(0, 0, Window_Width, Window_Height);
+		if (predefinedTarget != nullptr&&!predefinedTarget->getIsHit()&&!predefinedTarget->getIsDestroyed()&&visibleBound.intersects(predefinedTarget->getGlobalBounds())) {
 			Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
 			Vector2f selfPositionInLocalCoordinates = rotationMatrix*getPosition();
 			Vector2f targetPositionInLocalCoordinates = rotationMatrix*predefinedTarget->getPosition();

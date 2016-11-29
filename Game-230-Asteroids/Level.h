@@ -15,6 +15,7 @@
 #include "Background.h"
 #include "Player.h"
 #include "PowerUp.h"
+#include "AIPlayer.h"
 
 using namespace sf;
 using namespace std;
@@ -48,6 +49,7 @@ private:
 	Sound levelClearSound;
 	Texture missileSymbleTexture;
 	RectangleShape missileSymble;
+	AIPlayer AI;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
@@ -110,6 +112,8 @@ public:
 		missileSymbleTexture.loadFromFile(Missile_Texture);
 		missileSymble.setTexture(&missileSymbleTexture);
 		missileSymble.setPosition(Missile_Symble_X, Missile_Symble_Y);
+		AI.setSpaceshipPosition(300, 300);
+		AI.setIsEngineOn(true);
 		view.setRotation(90);
 		srand(time(NULL));
 	}
@@ -644,6 +648,11 @@ void Level::render(RenderWindow &window) {
 	if (player.isSpaceshipHit()) {
 		window.draw(player.getSpaceship()->getExplosion());
 	}
+	if (!AI.getIsHit() && !AI.getIsDestroyed()) {
+		if (AI.getIsEngineOn())
+			window.draw(AI.getSpaceship()->getEngineFlame());
+		window.draw(*AI.getSpaceship());
+	}	
 	if (!startingGame) {
 		window.draw(lives);
 		window.draw(score);
