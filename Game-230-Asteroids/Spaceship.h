@@ -25,9 +25,11 @@ private:
 	SoundBuffer gunSoundBuffer;
 	SoundBuffer engineSoundBuffer;
 	SoundBuffer explosionSoundBuffer;
+	SoundBuffer missileSoundBuffer;
 	Sound gunSound;
 	Sound engineSound;
 	Sound explosionSound;
+	Sound missileSound;
 	int engineSoundCounter;
 	float direction;
 	float angularSpeed;
@@ -71,12 +73,15 @@ public:
 		gunSoundBuffer.loadFromFile(Spaceship_Gun_Shot_Sound);
 		engineSoundBuffer.loadFromFile(Spaceship_Engine_Sound);
 		explosionSoundBuffer.loadFromFile(Explosion_Sound);
+		missileSoundBuffer.loadFromFile(Missile_Sound);
 		gunSound.setBuffer(gunSoundBuffer);
 		engineSound.setBuffer(engineSoundBuffer);
 		explosionSound.setBuffer(explosionSoundBuffer);
+		missileSound.setBuffer(missileSoundBuffer);
 		gunSound.setVolume(50);
 		engineSound.setVolume(50);
 		explosionSound.setVolume(50);
+		missileSound.setVolume(50);
 		Missile::loadTexture();
 	}
 
@@ -294,6 +299,7 @@ void Spaceship::launchMissiles() {
 		else
 			missiles[nextMissileToBeLaunched]->setDirection(direction + 90);
 		missiles[nextMissileToBeLaunched++]->setFired(true);
+		missileSound.play();
 		if (nextMissileToBeLaunched>=Missile_Number)
 			missileLaunched = false;
 	}

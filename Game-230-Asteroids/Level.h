@@ -110,7 +110,6 @@ public:
 		missileSymbleTexture.loadFromFile(Missile_Texture);
 		missileSymble.setTexture(&missileSymbleTexture);
 		missileSymble.setPosition(Missile_Symble_X, Missile_Symble_Y);
-		player.setMissileEquipped(true);
 		view.setRotation(90);
 		srand(time(NULL));
 	}
@@ -430,10 +429,12 @@ Interface Level::processAction() {
 			for (shared_ptr<Asteroid> a : childAsteroids)
 				spawnedAsteroids.push_back(a);
 		}
-		if (spawnedAsteroids[i]->getIsDestroyed()) {					
+		if (spawnedAsteroids[i]->getIsDestroyed()) {
+			PowerUp p;
 			int r = rand() % Power_Up_Spawn_Probability;
 			switch (r) {
-			case Power_Up_Spawn_Life_Pack:PowerUp p(Power_Up_Size, PowerUpType::LifePack); p.setPosition(spawnedAsteroids[i]->getPosition()); powerUps.push_back(p); break;
+			case Power_Up_Spawn_Life_Pack: p=PowerUp(Power_Up_Size, PowerUpType::LifePack); p.setPosition(spawnedAsteroids[i]->getPosition()); powerUps.push_back(p); break;
+			case Power_Up_Spawn_Missile_Pack:p = PowerUp(Power_Up_Size, PowerUpType::MissilePack); p.setPosition(spawnedAsteroids[i]->getPosition()); powerUps.push_back(p); break;
 			}
 			spawnedAsteroids.erase(spawnedAsteroids.begin() + i);
 		}

@@ -43,7 +43,7 @@ public:
 	bool isSpaceshipHit() { return spaceship->getIsHit(); }
 	void setIsInvincible(bool i) { isInvincible = i; }
 	bool getIsInvincible() { return isInvincible; }
-	void reset() { isInvincible = false; invincibilityCounter = 0; spaceship->reset(); spaceship->setSpaceshipRotation(90); }
+	void reset() { isInvincible = false; invincibilityCounter = 0; spaceship->reset(); spaceship->setSpaceshipRotation(90); missileEquipped = false; }
 	bool isSpaceshipVisible() { return isVisible; }
 	bool isNextLifeUsed() { return lives>0&&!spaceship->getIsHit() && isInvincible; }
 	bool isGameOver() { return lives <= 0; }

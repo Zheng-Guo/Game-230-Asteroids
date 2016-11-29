@@ -61,9 +61,14 @@ int PowerUp::interact(Player &p) {
 	Vector2f offset = getPosition() - p.getSpaceship()->getPosition();
 	float distance=sqrt(offset.x*offset.x + offset.y*offset.y);
 	if (distance < getRadius() + p.getSpaceship()->getRadius()) {
-		p.addLife();
 		isExpired = true;
-		return 1;
+		if (powerUpType == PowerUpType::LifePack) {
+			p.addLife();
+			return 1;
+		}
+		if (powerUpType == PowerUpType::MissilePack) {
+			p.setMissileEquipped(true);
+		}
 	}
 	return 0;
 }
