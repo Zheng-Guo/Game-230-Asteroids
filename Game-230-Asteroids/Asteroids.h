@@ -44,6 +44,7 @@ void Asteroids::startGame() {
 				window.close();
 			switch (currentInterface) {
 			case Interface::MenuInterface:currentInterface = mainMenu.processEvent(event); 
+				if (currentInterface == Interface::HelpInterface) helpScreen.resetMainMenu();
 				if (currentInterface == Interface::Exit) window.close(); 
 				break;
 			case Interface::LevelInterface:currentInterface = level.processEvent(event); 

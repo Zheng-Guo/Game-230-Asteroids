@@ -1,0 +1,38 @@
+Welcome to Asteroids!
+
+In this game, your task is to eliminate all the asteroids you could possibily 
+find in the area while remaining undestroyed throughout the game.
+
+Basic control:
+Press Up arrow key to initiate the spaceship engine and move forward in the 
+direction currently pointed by the front of the spaceship.
+Press Left arrow key to turn left, i.e. rotate counterclockwise on the screen.
+Press Right arrow key to turn right, i.e. rotate clockwise on the screen.
+Press Space to fire gun. Scores are given for each asteroid destroyed in the 
+game.
+
+There are three lives for the player to begin with. The player loses a life if
+the spaceship collides with an asteroid. When the player loses a life, the next 
+remaining life is used and there is a three-second invincible period for the 
+spaceship. During this period of invincibility, the spaceship could move around
+but cannot fire. If the player manages to destroy all asteroids without losing 
+all lives, the current level is clear and next level will begin.
+
+Two types of power up items are available in the game. One is life pack and 
+theother is missile pack. A life pack gives a player one additional life. A 
+missile pack gives a player ten self-guided missiles. When the player's 
+spaceshp is equipped with missiles, player can launch the missiles by pressing 
+the M key. The missiles automatically search for the ten nearest asteroids and 
+fly to them on their own. A missile annihilites an asteroid completely. Only 
+one missile pack can be equipped at the same time. Power up items are 
+spawned randomly after an asteroid is destroyed, and disappears 5 seconds 
+after spawned on screen.
+
+An enemy spaceship will appear in each level at some point in the game. The 
+enemy spaceship attempts to follow the player's spaceship and fire at the 
+player's spaceship. If the player's spaceship is hit by the enemy spaceship's 
+gun shots or collided with the enemy spaceship, the player loses a life. The 
+enemy spaceship could fly and fire through the asteroids, and cannot be 
+targeted and destroyed by missiles. Score is given to the player if the enemy
+spaceship is destroyed. There is no need to destroy the enemy spaceship in 
+order to proceed to the next leve.

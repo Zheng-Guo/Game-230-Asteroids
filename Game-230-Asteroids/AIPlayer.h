@@ -30,6 +30,7 @@ public:
 		spaceship->setSpaceshipFlameTexture(Enemy_Spaceship_Engine_Flame_Texture);
 		spaceship->setSpaceshipFlameSize(Enemy_Spaceship_Flame_Width, Enemy_Spaceship_Flame_Height);
 		spaceship->setSpaceshipFlamePosition(spaceship->getPosition().x, spaceship->getPosition().y);
+		spaceship->setControlledbyPlayer(false);
 	}
 	shared_ptr<Spaceship> getSpaceship() { return spaceship; }
 	void setSpaceshipPosition(float x, float y) { spaceship->setPosition(x, y); }

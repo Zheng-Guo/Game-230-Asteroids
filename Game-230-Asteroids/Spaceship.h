@@ -43,6 +43,7 @@ private:
 	vector<shared_ptr<Missile>> missiles;
 	int firingCounter;
 	int launchingCounter;
+	bool controlledByPlayer;
 	void playEngineSound();
 public:
 	Spaceship(float size,float direction,float thrust,float fullSpeed,float angularSpeed):CircleShape(size),
@@ -60,7 +61,8 @@ public:
 	firingCounter(0),
 	missileLaunched(false),
 	launchingCounter(0),
-	engineSoundCounter(0){
+	engineSoundCounter(0),
+	controlledByPlayer(true){
 		setOrigin(size, size);
 		rotate(direction);
 		flame.rotate(direction);
@@ -121,6 +123,7 @@ public:
 	float getDirection() { return direction; }
 	void shift(Vector2f v) { CircleShape::move(v); flame.move(v); explosion.move(v); }
 	void turn(float r);
+	void setControlledbyPlayer(bool b) { controlledByPlayer = b; }
 };
 
 void Spaceship::setPosition(float x, float y) {
@@ -155,7 +158,8 @@ void Spaceship::moveForward() {
 	Vector2f newVelocityInLocalCoordinates(xSpeed, velocityInLocalCoordinates.y);
 	Matrix reverseRotationMatrix(cos(-direction*Degree_To_Radian), sin(-direction*Degree_To_Radian), -sin(-direction*Degree_To_Radian), cos(-direction*Degree_To_Radian));
 	velocity = reverseRotationMatrix*newVelocityInLocalCoordinates;
-	playEngineSound();
+	if(controlledByPlayer)
+		playEngineSound();
 }
 /*
 void Spaceship::moveBackward() {
