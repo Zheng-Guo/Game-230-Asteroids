@@ -40,7 +40,7 @@ public:
 	bool getIsDestroyed() { return isDestroyed; }
 	void explode() { spaceship->explode(); }
 	bool isSpaceshipHit() { return spaceship->getIsHit(); }
-	void reset() { spaceship->reset(); spaceship->setSpaceshipRotation(90); }
+	void reset() { spaceship->reset(); isHit = true; isEngineOn = false; }
 	void fireFun() { spaceship->fire(); }
 	void resetSpaceshipEngineSound() { spaceship->resetEngineSound(); }
 	void setPlayerSpaceship(shared_ptr<Spaceship> s) { playerSpaceship = s; }

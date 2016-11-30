@@ -394,6 +394,10 @@ bool Level::spaceshipCollision() {
 				return true;
 		}
 	}
+	Vector2f offset = AI.getSpaceship()->getPosition() - spaceship->getPosition();
+	float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+	if (distance <  AI.getSpaceship()->getRadius() + spaceship->getRadius())
+		return true;
 	return false;
 }
 
@@ -715,6 +719,7 @@ void Level::resetLevel() {
 	powerUps.clear();
 	enemySpawnCounter = 0;
 	enemySpawned = false;
+	AI.reset();
 }
 
 void Level::nextLevel() {
@@ -742,6 +747,7 @@ void Level::nextLevel() {
 	powerUps.clear();
 	enemySpawnCounter = 0;
 	enemySpawned = false;
+	AI.reset();
 }
 
 void Level::spawnEnemySpaceship() {
@@ -750,6 +756,7 @@ void Level::spawnEnemySpaceship() {
 	else {
 		enemySpawned = true;
 		AI.setIsHit(false);
+		AI.setIsEngineOn(true);
 		float x, y;
 		int i = rand() % 4;
 		if (i == 0) {
@@ -792,8 +799,6 @@ void Level::spawnEnemySpaceship() {
 					angle -= PI;
 			}
 		}
-
-	//	angle += PI;
 		AI.setSpaceshipRotation(angle / Degree_To_Radian);
 	}
 }
