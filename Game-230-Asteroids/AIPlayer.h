@@ -4,6 +4,9 @@
 #include "GameConstants.h"
 #include "Spaceship.h"
 #include "Matrix.h"
+#include "GunShot.h"
+#include "Missile.h"
+
 
 using namespace sf;
 using namespace std;
@@ -19,7 +22,8 @@ private:
 public:
 	AIPlayer():isEngineOn(false),
 	isHit(false),
-	isDestroyed(false){
+	isDestroyed(false),
+	score(Enemy_Spaceship_Score){
 		spaceship = make_shared<Spaceship>(Spaceship_Size, 90, Spaceship_Thrust, Spaceship_Full_Speed, Spaceship_Angular_Speed);
 		spaceship->setSpaceshipTexture(Enemy_Spaceship_Texture);
 		spaceship->setSpaceshipFlameTexture(Enemy_Spaceship_Engine_Flame_Texture);
@@ -45,6 +49,9 @@ public:
 	void resetSpaceshipEngineSound() { spaceship->resetEngineSound(); }
 	void setPlayerSpaceship(shared_ptr<Spaceship> s) { playerSpaceship = s; }
 	void navigate();
+	bool getHit(shared_ptr<CircleShape> c);
+	int getScore() { return score; }
+	void loseLife();
 };
 
 void AIPlayer::navigate() {
@@ -83,4 +90,20 @@ void AIPlayer::navigate() {
 	else {
 		spaceship->turnRight();
 	}
+}
+
+bool AIPlayer::getHit(shared_ptr<CircleShape> c) {
+	Vector2f offset = spaceship->getPosition() - c->getPosition();
+	float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+	if (distance <  spaceship->getRadius() + c->getRadius())
+		return true;
+	return false;
+}
+
+void AIPlayer::loseLife() {
+	spaceship->setIsHit(true);
+	isHit = true;
+	spaceship->setVelocity(Vector2f(0, 0));
+	for (shared_ptr<GunShot> g : spaceship->getGunShots())
+		g->setFired(false);
 }

@@ -59,7 +59,7 @@ private:
 	void rebucket();
 	set<shared_ptr<Asteroid>> getCollidibleAsteroids();
 	set<shared_ptr<Asteroid>> getTargetAsteroids(shared_ptr<CircleShape> g);
-	set<shared_ptr<Asteroid>> getVisibleAsteroids();
+	set<shared_ptr<Asteroid>> getVisibleTargets();
 	bool spaceshipCollision();
 public:
 	Level() :spawnBound(Spawn_Bound_Left, Spawn_Bound_Top, Spawn_Bound_Width, Spawn_Bound_Height),
@@ -375,7 +375,7 @@ set<shared_ptr<Asteroid>> Level::getTargetAsteroids(shared_ptr<CircleShape> g) {
 	return targets;
 }
 
-set<shared_ptr<Asteroid>> Level::getVisibleAsteroids() {
+set<shared_ptr<Asteroid>> Level::getVisibleTargets() {
 	set<shared_ptr<Asteroid>> targets;
 	for (int i = 1; i < Bucket_Grid_Row_Number - 1; ++i)
 		for (int j = 1; j < Bucket_Grid_Column_Number - 1; ++j)
@@ -418,7 +418,7 @@ Interface Level::processEvent(Event event) {
 	if (Keyboard::isKeyPressed(Keyboard::Space) && !startingGame && !player.isSpaceshipHit()&&!player.getIsInvincible() && !levelClear)
 		fireGun = true;
 	if (Keyboard::isKeyPressed(Keyboard::M) && !startingGame && !player.isSpaceshipHit() && !player.getIsInvincible() && !levelClear)
-		player.launchMissile(getVisibleAsteroids());
+		player.launchMissile(getVisibleTargets());
 	return Interface::LevelInterface;
 }
 
@@ -473,6 +473,9 @@ Interface Level::processAction() {
 			++i;
 		}
 	}
+	if (AI.isSpaceshipHit()) {
+		AI.explode();
+	}
 	if (!startingGame&&!enemySpawned)
 		spawnEnemySpaceship();
 	if (enemySpawned&&!AI.isSpaceshipHit()) {
@@ -503,7 +506,15 @@ Interface Level::processAction() {
 				ostringstream ss;
 				ss << "Score: " << player.getScore();
 				score.setString(ss.str());
-			}				
+			}			
+			if (AI.getHit(g)) {
+				g->setFired(false);
+				AI.loseLife();
+				player.addScore(AI.getScore());
+				ostringstream ss;
+				ss << "Score: " << player.getScore();
+				score.setString(ss.str());
+			}
 		}
 	}
 	for (shared_ptr<Missile> m : player.getSpaceship()->getMissiles()) {
@@ -545,6 +556,8 @@ Interface Level::processAction() {
 				m->shift(shift);
 			for (int i=0;i<powerUps.size();++i)
 				powerUps[i].shift(shift);
+			if (enemySpawned && !AI.isSpaceshipHit())
+				AI.getSpaceship()->shift(shift);
 		}
 	}
 	rebucket();
@@ -679,6 +692,9 @@ void Level::render(RenderWindow &window) {
 			window.draw(AI.getSpaceship()->getEngineFlame());
 		window.draw(*AI.getSpaceship());
 	}	
+	if (AI.isSpaceshipHit()) {
+		window.draw(AI.getSpaceship()->getExplosion());
+	}
 	if (!startingGame) {
 		window.draw(lives);
 		window.draw(score);
