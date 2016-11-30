@@ -119,7 +119,7 @@ public:
 	void reset();
 	void resetEngineSound() { engineSoundCounter = 0; }
 	float getDirection() { return direction; }
-	void shift(Vector2f v) { CircleShape::move(v); }
+	void shift(Vector2f v) { CircleShape::move(v); flame.move(v); explosion.move(v); }
 };
 
 void Spaceship::setPosition(float x, float y) {

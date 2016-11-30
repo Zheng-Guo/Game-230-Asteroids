@@ -398,6 +398,14 @@ bool Level::spaceshipCollision() {
 	float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
 	if (distance <  AI.getSpaceship()->getRadius() + spaceship->getRadius())
 		return true;
+	for (shared_ptr<GunShot> g : AI.getSpaceship()->getGunShots()) {
+		if (g->getFired()) {
+			Vector2f offset = g->getPosition() - spaceship->getPosition();
+			float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+			if (distance < g->getRadius() + spaceship->getRadius())
+				return true;
+		}
+	}
 	return false;
 }
 
@@ -481,6 +489,9 @@ Interface Level::processAction() {
 	if (enemySpawned&&!AI.isSpaceshipHit()) {
 		AI.moveForward();
 		AI.getSpaceship()->move();
+		FloatRect fireRange(Enemy_Spaceship_Fire_Range_X, Enemy_Spaceship_Fire_Range_Y, Enemy_Spaceship_Flame_Width, Enemy_Spaceship_Fire_Range_Height);
+		if (!player.isSpaceshipHit()&&fireRange.intersects(AI.getSpaceship()->getGlobalBounds()))
+			AI.fireFun();
 	}
 	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0&&!levelClear) {
 		levelClearSound.play();
@@ -496,6 +507,7 @@ Interface Level::processAction() {
 	}
 	player.getSpaceship()->recycleGunShots(spawnBound);
 	player.getSpaceship()->recycleMissiles(spawnBound);
+	AI.getSpaceship()->recycleGunShots(spawnBound);
 	FloatRect visibleArea(0, 0, Window_Width, Window_Height);
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots()) {
 		if (visibleArea.intersects(g->getGlobalBounds())) {
@@ -535,6 +547,9 @@ Interface Level::processAction() {
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
 		if(g->getFired())
 			g->move();
+	for (shared_ptr<GunShot> g : AI.getSpaceship()->getGunShots())
+		if (g->getFired())
+			g->move();
 	for (shared_ptr<Missile> m : player.getSpaceship()->getMissiles()) {
 		if (m->getFired()) {
 			m->navigate();
@@ -558,6 +573,8 @@ Interface Level::processAction() {
 				powerUps[i].shift(shift);
 			if (enemySpawned && !AI.isSpaceshipHit())
 				AI.getSpaceship()->shift(shift);
+			for (shared_ptr<GunShot> g : AI.getSpaceship()->getGunShots())
+				g->shift(shift);
 		}
 	}
 	rebucket();
@@ -670,6 +687,9 @@ void Level::render(RenderWindow &window) {
 			window.draw(p);
 	}
 	for (shared_ptr<GunShot> g : player.getSpaceship()->getGunShots())
+		if (g->getFired())
+			window.draw(*g);
+	for (shared_ptr<GunShot> g : AI.getSpaceship()->getGunShots())
 		if (g->getFired())
 			window.draw(*g);
 	for (shared_ptr<Missile> m : player.getSpaceship()->getMissiles())
