@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <cmath>
 #include <SFML\Graphics.hpp>
 #include "GameConstants.h"
 #include "Asteroid.h"
@@ -51,6 +52,7 @@ public:
 	shared_ptr<Asteroid> target(set<shared_ptr<Asteroid>> allTargets);
 	RectangleShape getFlame() { return flame; }
 	void rotate(float r);
+	void recalibrate();
 };
 
 Texture Missile::texture;
@@ -164,5 +166,16 @@ void Missile::moveForward() {
 	if (navigationCounter == Missile_Navigation_Preparation_Duration) {
 		velocity = Vector2f(0, 0);
 		navigationCounter++;
+	}
+}
+
+void Missile::recalibrate() {
+	Vector2f offset = predefinedTarget->getPosition() - getPosition();
+	float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+	if (distance > Missile_Recalibration_Distance) {
+		Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
+		Vector2f velocityInLocalCoordinates = rotationMatrix*velocity;
+		if (velocityInLocalCoordinates.x >= 0 || abs(velocityInLocalCoordinates.y) / abs(velocityInLocalCoordinates.x) > Enemy_Spaceship_Recalibration_Threshold)
+			velocity = Vector2f(0, 0);
 	}
 }

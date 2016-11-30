@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <cmath>
 #include <SFML\Graphics.hpp>
 #include "GameConstants.h"
 #include "Spaceship.h"
@@ -53,6 +54,7 @@ public:
 	int getScore() { return score; }
 	void loseLife();
 	bool isWithinFireRange();
+	void recalibrate();
 };
 
 void AIPlayer::navigate() {
@@ -134,10 +136,18 @@ bool AIPlayer::isWithinFireRange() {
 	}
 	float turningAngle = (angle < 0) ? angle + PI : angle - PI;
 	turningAngle /= Degree_To_Radian;
-	Vector2f offset = playerSpaceship->getPosition() - spaceship->getPosition();
-	float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
-	float fireAngle = asin((playerSpaceship->getRadius() + Gun_Shot_Size) / distance);
-	if (turningAngle > 0 && turningAngle < fireAngle || turningAngle<0 && turningAngle>fireAngle)
+	if (turningAngle > 0 && turningAngle < Enemy_Spaceship_Fire_Angle_Margin || turningAngle<0 && turningAngle>-Enemy_Spaceship_Fire_Angle_Margin)
 		return true;
 	return false;
+}
+
+void AIPlayer::recalibrate() {
+	Vector2f offset = playerSpaceship->getPosition() - spaceship->getPosition();
+	float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+	if (distance > Enemy_Spaceship_Recalibration_Distance) {
+		Matrix rotationMatrix(cos(spaceship->getDirection()*Degree_To_Radian), sin(spaceship->getDirection()*Degree_To_Radian), -sin(spaceship->getDirection()*Degree_To_Radian), cos(spaceship->getDirection()*Degree_To_Radian));
+		Vector2f velocityInLocalCoordinates = rotationMatrix*spaceship->getVelocity();
+		if(velocityInLocalCoordinates.x>=0||abs(velocityInLocalCoordinates.y)/abs(velocityInLocalCoordinates.x)>Enemy_Spaceship_Recalibration_Threshold)
+			spaceship->setVelocity(Vector2f(0, 0));
+	}	
 }
