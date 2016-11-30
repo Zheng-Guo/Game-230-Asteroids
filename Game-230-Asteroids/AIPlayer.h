@@ -52,6 +52,7 @@ public:
 	bool getHit(shared_ptr<CircleShape> c);
 	int getScore() { return score; }
 	void loseLife();
+	bool isWithinFireRange();
 };
 
 void AIPlayer::navigate() {
@@ -84,12 +85,7 @@ void AIPlayer::navigate() {
 	}
 	float turningAngle = (angle < 0) ? angle + PI : angle - PI;
 	turningAngle /= Degree_To_Radian;
-	if (turningAngle < 0) {
-		spaceship->turnLeft();
-	}
-	else {
-		spaceship->turnRight();
-	}
+	spaceship->turn(turningAngle);
 }
 
 bool AIPlayer::getHit(shared_ptr<CircleShape> c) {
@@ -106,4 +102,42 @@ void AIPlayer::loseLife() {
 	spaceship->setVelocity(Vector2f(0, 0));
 	for (shared_ptr<GunShot> g : spaceship->getGunShots())
 		g->setFired(false);
+}
+
+bool AIPlayer::isWithinFireRange() {
+	float direction = spaceship->getDirection();
+	Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
+	Vector2f selfPositionInLocalCoordinates = rotationMatrix*spaceship->getPosition();
+	Vector2f targetPositionInLocalCoordinates = rotationMatrix*playerSpaceship->getPosition();
+	float deltaX = targetPositionInLocalCoordinates.x - selfPositionInLocalCoordinates.x, deltaY = targetPositionInLocalCoordinates.y - selfPositionInLocalCoordinates.y;
+	float angle;
+	if (deltaX == 0) {
+		if (deltaY > 0)
+			angle = PI / 2;
+		else
+			angle = -PI / 2;
+	}
+	else if (deltaY == 0) {
+		if (deltaX > 0)
+			angle = 0;
+		else
+			angle = PI;
+	}
+	else {
+		angle = atan(deltaY / deltaX);
+		if (deltaX < 0) {
+			if (deltaY > 0)
+				angle += PI;
+			else
+				angle -= PI;
+		}
+	}
+	float turningAngle = (angle < 0) ? angle + PI : angle - PI;
+	turningAngle /= Degree_To_Radian;
+	Vector2f offset = playerSpaceship->getPosition() - spaceship->getPosition();
+	float distance = sqrt(offset.x*offset.x + offset.y*offset.y);
+	float fireAngle = asin((playerSpaceship->getRadius() + Gun_Shot_Size) / distance);
+	if (turningAngle > 0 && turningAngle < fireAngle || turningAngle<0 && turningAngle>fireAngle)
+		return true;
+	return false;
 }

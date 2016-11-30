@@ -487,10 +487,11 @@ Interface Level::processAction() {
 	if (!startingGame&&!enemySpawned)
 		spawnEnemySpaceship();
 	if (enemySpawned&&!AI.isSpaceshipHit()) {
+		AI.navigate();
 		AI.moveForward();
 		AI.getSpaceship()->move();
-		FloatRect fireRange(Enemy_Spaceship_Fire_Range_X, Enemy_Spaceship_Fire_Range_Y, Enemy_Spaceship_Flame_Width, Enemy_Spaceship_Fire_Range_Height);
-		if (!player.isSpaceshipHit()&&fireRange.intersects(AI.getSpaceship()->getGlobalBounds()))
+		FloatRect fireRange(Enemy_Spaceship_Fire_Range_X, Enemy_Spaceship_Fire_Range_Y, Enemy_Spaceship_Fire_Range_Width, Enemy_Spaceship_Fire_Range_Height);
+		if (!player.isSpaceshipHit()&&fireRange.contains(AI.getSpaceship()->getPosition())&&AI.isWithinFireRange())
 			AI.fireFun();
 	}
 	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0&&!levelClear) {

@@ -120,6 +120,7 @@ public:
 	void resetEngineSound() { engineSoundCounter = 0; }
 	float getDirection() { return direction; }
 	void shift(Vector2f v) { CircleShape::move(v); flame.move(v); explosion.move(v); }
+	void turn(float r);
 };
 
 void Spaceship::setPosition(float x, float y) {
@@ -312,6 +313,8 @@ void Spaceship::launchMissiles() {
 }
 
 void Spaceship::reset() {
+	gunShots.clear();
+	missiles.clear();
 	velocity = Vector2f(0, 0);
 	explosion.setTextureRect(IntRect(0, 0, 256, 256));
 	explosionCounter = 0;
@@ -327,4 +330,35 @@ void Spaceship::playEngineSound() {
 		++engineSoundCounter;
 	else 
 		engineSoundCounter = 0;
+}
+
+void Spaceship::turn(float r) {
+	if (r < 0) {
+		if (r < angularSpeed) {
+			direction += angularSpeed;
+			rotate(angularSpeed);
+			flame.rotate(angularSpeed);
+		}
+		else {
+			direction += r;
+			rotate(r);
+			flame.rotate(r);
+		}
+	}
+	else {
+		if (r > -angularSpeed) {
+			direction -= angularSpeed;
+			rotate(-angularSpeed);
+			flame.rotate(-angularSpeed);
+		}
+		else {
+			direction -= r;
+			rotate(-r);
+			flame.rotate(-r);
+		}
+	}
+	if (direction > 180)
+		direction -= 360;
+	else if (direction < -180)
+		direction += 360;
 }
