@@ -157,6 +157,8 @@ const float Enemy_Spaceship_Fire_Range_X = 100;
 const float Enemy_Spaceship_Fire_Range_Y = 100;
 const int Enemy_Spaceship_Fire_Range_Width = 800;
 const int Enemy_Spaceship_Fire_Range_Height = 800;
+const int Enemy_Spaceship_Spawn_Time = 5*Refresh_Frequency;
+const int Enemy_Spaceship_Spawn_Time_Margin = 5*Refresh_Frequency;
 const float PI = 3.14159265;
 const float Degree_To_Radian = PI / 180;
 enum AsteroidSize{Small,Medium,Large};

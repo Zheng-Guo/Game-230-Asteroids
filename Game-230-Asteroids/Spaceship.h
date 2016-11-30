@@ -118,6 +118,7 @@ public:
 	bool getMissileLaunched() { return missileLaunched; }
 	void reset();
 	void resetEngineSound() { engineSoundCounter = 0; }
+	float getDirection() { return direction; }
 };
 
 void Spaceship::setPosition(float x, float y) {

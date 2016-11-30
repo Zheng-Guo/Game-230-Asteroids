@@ -3,6 +3,7 @@
 #include <SFML\Graphics.hpp>
 #include "GameConstants.h"
 #include "Spaceship.h"
+#include "Matrix.h"
 
 using namespace sf;
 using namespace std;
@@ -10,6 +11,7 @@ using namespace std;
 class AIPlayer {
 private:
 	shared_ptr<Spaceship> spaceship;
+	shared_ptr<Spaceship> playerSpaceship;
 	int score;
 	bool isEngineOn;
 	bool isHit;
@@ -41,4 +43,44 @@ public:
 	void reset() { spaceship->reset(); spaceship->setSpaceshipRotation(90); }
 	void fireFun() { spaceship->fire(); }
 	void resetSpaceshipEngineSound() { spaceship->resetEngineSound(); }
+	void setPlayerSpaceship(shared_ptr<Spaceship> s) { playerSpaceship = s; }
+	void navigate();
 };
+
+void AIPlayer::navigate() {
+	float direction = spaceship->getDirection();
+	Matrix rotationMatrix(cos(direction*Degree_To_Radian), sin(direction*Degree_To_Radian), -sin(direction*Degree_To_Radian), cos(direction*Degree_To_Radian));
+	Vector2f selfPositionInLocalCoordinates = rotationMatrix*spaceship->getPosition();
+	Vector2f targetPositionInLocalCoordinates = rotationMatrix*playerSpaceship->getPosition();
+	float deltaX = targetPositionInLocalCoordinates.x - selfPositionInLocalCoordinates.x, deltaY = targetPositionInLocalCoordinates.y - selfPositionInLocalCoordinates.y;
+	float angle;
+	if (deltaX == 0) {
+		if (deltaY > 0)
+			angle = PI / 2;
+		else
+			angle = -PI / 2;
+	}
+	else if (deltaY == 0) {
+		if (deltaX > 0)
+			angle = 0;
+		else
+			angle = PI;
+	}
+	else {
+		angle = atan(deltaY / deltaX);
+		if (deltaX < 0) {
+			if (deltaY > 0)
+				angle += PI;
+			else
+				angle -= PI;
+		}
+	}
+	float turningAngle = (angle < 0) ? angle + PI : angle - PI;
+	turningAngle /= Degree_To_Radian;
+	if (turningAngle < 0) {
+		spaceship->turnLeft();
+	}
+	else {
+		spaceship->turnRight();
+	}
+}

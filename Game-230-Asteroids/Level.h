@@ -50,6 +50,9 @@ private:
 	Texture missileSymbleTexture;
 	RectangleShape missileSymble;
 	AIPlayer AI;
+	int enemySpawnCounter;
+	int enemySpawnTime;
+	bool enemySpawned;
 	void initializeAsteroids();
 	void spawnAsteroid();
 	void spawnAsteroids();
@@ -67,6 +70,8 @@ public:
 	levelClear(false),
 	gameOver(false),
 	levelEndCounter(0),
+	enemySpawnCounter(0),
+	enemySpawned(false),
 	view(FloatRect(Level_Initial_View_X,Level_Initial_View_Y,Level_Initial_View_Width,Level_Initial_View_Height)),
 	missileSymble(Vector2f(Missile_Symble_Width,Missile_Symble_Height)){
 		player.setSpaceshipPosition(Window_Width / 2, Window_Height / 2);
@@ -112,10 +117,13 @@ public:
 		missileSymbleTexture.loadFromFile(Missile_Texture);
 		missileSymble.setTexture(&missileSymbleTexture);
 		missileSymble.setPosition(Missile_Symble_X, Missile_Symble_Y);
-		AI.setSpaceshipPosition(300, 300);
-		AI.setIsEngineOn(true);
+		//AI.setSpaceshipPosition(300, 300);
+		//AI.setIsEngineOn(true);
+		AI.setIsHit(true);
+		AI.setPlayerSpaceship(player.getSpaceship());
 		view.setRotation(90);
 		srand(time(NULL));
+		enemySpawnTime = Enemy_Spaceship_Spawn_Time + rand() % Enemy_Spaceship_Spawn_Time_Margin;
 	}
 	void setDisplayWindow(FloatRect w) { background.setDisplayWindow(w); }
 	Interface processEvent(Event event);
@@ -124,6 +132,7 @@ public:
 	void resetLevel();
 	int getScore() { return player.getScore(); }
 	void nextLevel();
+	void spawnEnemySpaceship();
 };
 
 void Level::initializeAsteroids() {
@@ -460,6 +469,12 @@ Interface Level::processAction() {
 			++i;
 		}
 	}
+	if (!startingGame&&!enemySpawned)
+		spawnEnemySpaceship();
+	if (enemySpawned&&!AI.isSpaceshipHit()) {
+		AI.moveForward();
+		AI.getSpaceship()->move();
+	}
 	if (spawnedAsteroids.size() == 0 && asteroids.size() == 0&&!levelClear) {
 		levelClearSound.play();
 		levelClear = true;
@@ -698,6 +713,8 @@ void Level::resetLevel() {
 	blackCurtains.insert(blackCurtains.begin(), displayedBlackCurtains.begin(), displayedBlackCurtains.end());
 	displayedBlackCurtains.clear();
 	powerUps.clear();
+	enemySpawnCounter = 0;
+	enemySpawned = false;
 }
 
 void Level::nextLevel() {
@@ -723,4 +740,60 @@ void Level::nextLevel() {
 	blackCurtains.insert(blackCurtains.begin(), displayedBlackCurtains.begin(), displayedBlackCurtains.end());
 	displayedBlackCurtains.clear();
 	powerUps.clear();
+	enemySpawnCounter = 0;
+	enemySpawned = false;
+}
+
+void Level::spawnEnemySpaceship() {
+	if (enemySpawnCounter < enemySpawnTime)
+		++enemySpawnCounter;
+	else {
+		enemySpawned = true;
+		AI.setIsHit(false);
+		float x, y;
+		int i = rand() % 4;
+		if (i == 0) {
+			x = Enemy_Spaceship_Spawn_X;
+			y = rand() % Enemy_Spaceship_Spawn_Height + Enemy_Spaceship_Spawn_Y;
+		}
+		else if (i == 1) {
+			x = rand() % Enemy_Spaceship_Spawn_Width + Enemy_Spaceship_Spawn_X;
+			y = Enemy_Spaceship_Spawn_Y;
+		}
+		else if (i == 2) {
+			x = Enemy_Spaceship_Spawn_X+ Enemy_Spaceship_Spawn_Width;
+			y = rand() % Enemy_Spaceship_Spawn_Height + Enemy_Spaceship_Spawn_Y;
+		}
+		else {
+			x = rand() % Enemy_Spaceship_Spawn_Width + Enemy_Spaceship_Spawn_X;
+			y = Enemy_Spaceship_Spawn_Y+ Enemy_Spaceship_Spawn_Height;
+		}
+		AI.setSpaceshipPosition(x, y);
+		float deltaX = player.getSpaceship()->getPosition().x-x, deltaY = player.getSpaceship()->getPosition().y-y;
+		float angle;
+		if (deltaX == 0) {
+			if (deltaY > 0)
+				angle = PI / 2;
+			else
+				angle = -PI / 2;
+		}
+		else if (deltaY == 0) {
+			if (deltaX > 0)
+				angle = 0;
+			else
+				angle = PI;
+		}
+		else {
+			angle = atan(deltaY / deltaX);
+			if (deltaX > 0) {
+				if (deltaY > 0)
+					angle += PI;
+				else
+					angle -= PI;
+			}
+		}
+
+	//	angle += PI;
+		AI.setSpaceshipRotation(angle / Degree_To_Radian);
+	}
 }
