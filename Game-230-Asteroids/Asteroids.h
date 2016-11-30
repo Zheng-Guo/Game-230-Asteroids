@@ -5,6 +5,7 @@
 #include "GameConstants.h"
 #include "MainMenu.h"
 #include "Level.h"
+#include "Help.h"
 #include "GameOver.h"
 
 using namespace sf;
@@ -16,6 +17,7 @@ private:
 	View initialView;
 	MainMenu mainMenu;
 	Level level;
+	Help helpScreen;
 	GameOver gameOver;
 	Clock clock;
 	Time time1, time2, time3;
@@ -47,6 +49,9 @@ void Asteroids::startGame() {
 			case Interface::LevelInterface:currentInterface = level.processEvent(event); 
 				if (currentInterface == Interface::MenuInterface) { mainMenu.resetMainMenu(); window.setView(initialView); } 
 				break;
+			case Interface::HelpInterface:currentInterface = helpScreen.processEvent(event);
+				if (currentInterface == Interface::MenuInterface)  mainMenu.resetMainMenu(); 
+				break;
 			case Interface::GameoverInterface:currentInterface = gameOver.processEvent(event); 
 				if (currentInterface == Interface::MenuInterface) mainMenu.resetMainMenu(); 
 				break;
@@ -69,6 +74,7 @@ void Asteroids::startGame() {
 		switch (currentInterface) {
 		case Interface::MenuInterface: mainMenu.render(window); break;
 		case Interface::LevelInterface:level.render(window); break;
+		case Interface::HelpInterface:helpScreen.render(window); break;
 		case Interface::GameoverInterface:gameOver.render(window); break;
 		}
 		window.display();

@@ -39,6 +39,9 @@ public:
 		text.setCharacterSize(Menu_Option_Character_Size);
 		text.setPosition(Menu_Option_X, Menu_Option_Initial_Y+optionText.size()*Menu_Option_Interval);
 		optionText.push_back(text);
+		text.setString("Help");
+		text.setPosition(Menu_Option_X, Menu_Option_Initial_Y + optionText.size()*Menu_Option_Interval);
+		optionText.push_back(text);
 		text.setString("Quit");
 		text.setPosition(Menu_Option_X, Menu_Option_Initial_Y + optionText.size()*Menu_Option_Interval);
 		optionText.push_back(text);
@@ -72,6 +75,9 @@ Interface MainMenu::processEvent(Event event) {
 	if (Keyboard::isKeyPressed(Keyboard::Space)) {
 		if (currentSelection == MenuOption::StartGame) {
 			startingGame = true;
+		}
+		if (currentSelection == MenuOption::UserHelp) {
+			return Interface::HelpInterface;
 		}
 		if (currentSelection == MenuOption::Quit)
 			return Interface::Exit;
