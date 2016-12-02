@@ -486,7 +486,7 @@ Interface Level::processAction() {
 	}
 	if (!startingGame&&!enemySpawned)
 		spawnEnemySpaceship();
-	if (enemySpawned&&!AI.isSpaceshipHit()) {
+	if (enemySpawned&&!AI.getIsHit()&&!AI.isSpaceshipHit()) {
 		AI.recalibrate();
 		AI.navigate();
 		AI.moveForward();
